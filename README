@@ -1,0 +1,8 @@
+Ham radio repeater controller
+-----------------------------
+
+This is an arduino sketch aiming at providing a flexible
+repeater controller.
+
+The code is provided under GNU GPL v3
+

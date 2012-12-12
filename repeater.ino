@@ -1,3 +1,21 @@
+/*
+	Ham radio repeater controller
+    Copyright (C) 2012 Sebastien Van Cauwenberghe ON4SEB
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 ////////////////////////////////////////////
 // Static Repeater Configuration
 ////////////////////////////////////////////
@@ -27,10 +45,6 @@
 #define REPEATER_CLOSED 0
 #define REPEATER_OPEN 1
 
-#define BEEP_OFF 0
-#define BEEP_ON 1
-
-
 typedef unsigned char uchar;
 
 /////////////////////////////////////////////
@@ -39,6 +53,7 @@ typedef unsigned char uchar;
 void setup()
 {
   ioSetup();  
+  Serial.begin(115200);
 }
 
 void ioSetup()
@@ -60,18 +75,18 @@ void ioSetup()
 /////////////////////////////////////////////
 uchar State = REPEATER_CLOSED;
 
-unsigned long beepEvent;
 unsigned long inputEvent;
 unsigned long mikeReleaseEvent;
 unsigned long idEvent;
+bool beepEnabled;
 
 void loop()
 {
-  updateIO();
-  checkRepeaterState();
+  updateIO(); // Control PTT
+  setRepeaterState();
 }
 
-void checkRepeaterState()
+void setRepeaterState()
 {
   switch (State) 
   {
@@ -83,6 +98,7 @@ void checkRepeaterState()
     {
       inputEvent = millis();
       State = REPEATER_OPEN;
+      Serial.print ("Opening\n");
     }
     break;
 
@@ -92,24 +108,27 @@ void checkRepeaterState()
       || (USE_COR && digitalRead(PIN_CARRIER)))
     {
       inputEvent = millis();
+      beepEnabled = true;
     }
 
     // Set timeout after a known time    
     if ((millis() - inputEvent) >= INACTIVE_CLOSE)
     {
       State = REPEATER_CLOSED; 
+      Serial.print ("Closing\n");
     }
 
     // Roger Beep
-    if ((millis() - inputEvent) >= RELEASE_BEEP) // PTT Release time to roger beep
+    if (beepEnabled && ((millis() - inputEvent) >= RELEASE_BEEP)) // PTT Release time to roger beep
     {
-      beepEvent = millis();
       tone (PIN_MORSEOUT, BEEP_FREQ);
+      Serial.print ("Beep\n");
+      beepEnabled = false;
       mikeReleaseEvent = millis();
     }
     
     // Stop beep
-    if ((millis() - beepEvent) >= BEEP_LENGTH)
+    if (!beepEnabled && ((millis() - inputEvent) >= (RELEASE_BEEP+BEEP_LENGTH)))
     {
       noTone(PIN_MORSEOUT); 
     }
