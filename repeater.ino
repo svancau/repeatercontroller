@@ -32,9 +32,11 @@
 #define BEEP_LENGTH 100
 
 // BEHAVIOUR (set to 1 to enable, 0 to disable)
-#define USE_1750 1
-#define USE_CTCSS 1
-#define USE_COR 1
+#define USE_1750_OPEN 1
+#define USE_CTCSS_OPEN 1
+#define USE_CARRIER_OPEN 1
+#define USE_CTCSS_BUSY 1
+#define USE_CARRIER_BUSY 1
 #define USE_BEEP 1
 
 // BEEP Frequencies
@@ -92,9 +94,9 @@ void setRepeaterState()
   {
   case REPEATER_CLOSED:
     // Open Repeater
-    if ((USE_1750 && digitalRead(PIN_1750))
-      || (USE_CTCSS && digitalRead(PIN_CTCSS))
-      || (USE_COR && digitalRead(PIN_CARRIER)))
+    if ((USE_1750_OPEN && digitalRead(PIN_1750))
+      || (USE_CTCSS_OPEN && digitalRead(PIN_CTCSS))
+      || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)))
     {
       inputEvent = millis();
       State = REPEATER_OPEN;
@@ -104,8 +106,8 @@ void setRepeaterState()
 
   case REPEATER_OPEN:
     // Keep repeater open as long there is some input
-    if ((USE_CTCSS && digitalRead(PIN_CTCSS))
-      || (USE_COR && digitalRead(PIN_CARRIER)))
+    if ((USE_CTCSS_BUSY && digitalRead(PIN_CTCSS))
+      || (USE_CARRIER_BUSY && digitalRead(PIN_CARRIER)))
     {
       inputEvent = millis();
       beepEnabled = true;
