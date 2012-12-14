@@ -48,6 +48,7 @@
 #define REPEATER_OPEN 1
 
 typedef unsigned char uchar;
+typedef unsigned long ulong;
 
 /////////////////////////////////////////////
 // Setup phase
@@ -72,15 +73,20 @@ void ioSetup()
   digitalWrite(PIN_MORSEOUT, LOW);
 }
 
+#define UPDATE_TIMER(tname,tval) tname = millis() + tval
+#define TIMER_ELAPSED(tname) ((long)(millis() - tname) >= 0)
+
 /////////////////////////////////////////////
 // Main loop
 /////////////////////////////////////////////
 uchar State = REPEATER_CLOSED;
 
-unsigned long inputEvent;
-unsigned long mikeReleaseEvent;
-unsigned long idEvent;
-bool beepEnabled;
+// Timers
+ulong closeTimer;
+ulong beepTimer;
+
+bool beepEnabled; // A Roger beep can be sent
+bool sqlOpen; // Current Squelch status
 
 void loop()
 {
@@ -92,47 +98,59 @@ void setRepeaterState()
 {
   switch (State) 
   {
+  // ----------- REPEATER IS IDLE ----------------
   case REPEATER_CLOSED:
     // Open Repeater
     if ((USE_1750_OPEN && digitalRead(PIN_1750))
       || (USE_CTCSS_OPEN && digitalRead(PIN_CTCSS))
       || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)))
     {
-      inputEvent = millis();
+      UPDATE_TIMER(closeTimer,INACTIVE_CLOSE);
       State = REPEATER_OPEN;
       Serial.print ("Opening\n");
+      noTone(PIN_MORSEOUT); // Remove any beep
     }
     break;
 
+  // ----------- REPEATER IS OPENED ----------------
   case REPEATER_OPEN:
     // Keep repeater open as long there is some input
     if ((USE_CTCSS_BUSY && digitalRead(PIN_CTCSS))
       || (USE_CARRIER_BUSY && digitalRead(PIN_CARRIER)))
     {
-      inputEvent = millis();
-      beepEnabled = true;
+      UPDATE_TIMER(closeTimer,INACTIVE_CLOSE); // Repeater closing timer
+      sqlOpen = true;
+    }
+    else
+    {
+        if (sqlOpen) // If the Squelch was previously opened
+        {
+          UPDATE_TIMER(beepTimer,RELEASE_BEEP); // Roger beep start timer
+          beepEnabled = true;
+        }
+        sqlOpen = false;
     }
 
     // Set timeout after a known time    
-    if ((millis() - inputEvent) >= INACTIVE_CLOSE)
+    if (TIMER_ELAPSED(closeTimer))
     {
-      State = REPEATER_CLOSED; 
+      State = REPEATER_CLOSED;
       Serial.print ("Closing\n");
     }
 
     // Roger Beep
-    if (beepEnabled && ((millis() - inputEvent) >= RELEASE_BEEP)) // PTT Release time to roger beep
+    if (beepEnabled && TIMER_ELAPSED(beepTimer)) // PTT Release time to roger beep
     {
       tone (PIN_MORSEOUT, BEEP_FREQ);
       Serial.print ("Beep\n");
       beepEnabled = false;
-      mikeReleaseEvent = millis();
+      UPDATE_TIMER(beepTimer,BEEP_LENGTH); // Roger beep stop timer
     }
     
     // Stop beep
-    if (!beepEnabled && ((millis() - inputEvent) >= (RELEASE_BEEP+BEEP_LENGTH)))
+    if (!beepEnabled && TIMER_ELAPSED(beepTimer)) // Check if the time has elapsed since beep has started
     {
-      noTone(PIN_MORSEOUT); 
+      noTone(PIN_MORSEOUT);
     }
     break;
   }
