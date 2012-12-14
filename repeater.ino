@@ -35,8 +35,10 @@
 #define USE_1750_OPEN 1
 #define USE_CTCSS_OPEN 1
 #define USE_CARRIER_OPEN 1
+
 #define USE_CTCSS_BUSY 1
 #define USE_CARRIER_BUSY 1
+
 #define USE_BEEP 1
 
 // BEEP Frequencies
@@ -83,10 +85,12 @@ uchar State = REPEATER_CLOSED;
 
 // Timers
 ulong closeTimer;
-ulong beepTimer;
+ulong rogerBeepTimer;
+ulong beepToneTimer;
 
 bool beepEnabled; // A Roger beep can be sent
 bool sqlOpen; // Current Squelch status
+bool beepOn = false; // Beep is currently enabled
 
 void loop()
 {
@@ -110,6 +114,7 @@ void setRepeaterState()
       Serial.print ("Opening\n");
       noTone(PIN_MORSEOUT); // Remove any beep
     }
+
     break;
 
   // ----------- REPEATER IS OPENED ----------------
@@ -125,7 +130,7 @@ void setRepeaterState()
     {
         if (sqlOpen) // If the Squelch was previously opened
         {
-          UPDATE_TIMER(beepTimer,RELEASE_BEEP); // Roger beep start timer
+          UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
           beepEnabled = true;
         }
         sqlOpen = false;
@@ -139,23 +144,18 @@ void setRepeaterState()
     }
 
     // Roger Beep
-    if (beepEnabled && TIMER_ELAPSED(beepTimer)) // PTT Release time to roger beep
+    if (beepEnabled && TIMER_ELAPSED(rogerBeepTimer)) // PTT Release time to roger beep
     {
-      tone (PIN_MORSEOUT, BEEP_FREQ);
       Serial.print ("Beep\n");
       beepEnabled = false;
-      UPDATE_TIMER(beepTimer,BEEP_LENGTH); // Roger beep stop timer
+      startBeep (PIN_MORSEOUT, BEEP_FREQ, BEEP_LENGTH);
     }
-    
-    // Stop beep
-    if (!beepEnabled && TIMER_ELAPSED(beepTimer)) // Check if the time has elapsed since beep has started
-    {
-      noTone(PIN_MORSEOUT);
-    }
+
     break;
   }
 }
 
+// Control IO Pins
 void updateIO()
 {
   // Set the PTT control depending on repeater state
@@ -163,6 +163,29 @@ void updateIO()
     digitalWrite(PIN_PTT, HIGH);
   else
     digitalWrite(PIN_PTT, LOW);
+
+  updateBeep(PIN_MORSEOUT); // Stop the beep when timer elapsed
 }
 
+// Do a beep for a known time
+void startBeep(unsigned int pin, unsigned int freq, unsigned long duration)
+{
+  if (!beepOn)
+  {
+    tone (pin, freq);
+    UPDATE_TIMER(beepToneTimer,BEEP_LENGTH);
+    beepOn = true;
+  }
+}
+
+// Check that the beep time is elapsed and stop it if needed
+// CALLED only once in updateIO
+void updateBeep(unsigned int pin)
+{
+  if (beepOn && TIMER_ELAPSED(beepToneTimer))
+  {
+    noTone(pin);
+    beepOn = false;
+  }
+}
 
