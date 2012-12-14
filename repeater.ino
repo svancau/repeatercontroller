@@ -31,6 +31,13 @@
 #define RELEASE_BEEP 200
 #define BEEP_LENGTH 100
 
+#define MORSE_DOT 60
+#define MORSE_DASH (3*MORSE_DOT)
+// Spaces equal Number of dots - 1
+#define MORSE_SYM_SPC MORSE_DOT
+#define MORSE_LETTER_SPC (2*MORSE_DOT)
+#define MORSE_WORD_SPC (5*MORSE_DOT)
+
 // BEHAVIOUR (set to 1 to enable, 0 to disable)
 #define USE_1750_OPEN 1
 #define USE_CTCSS_OPEN 1
@@ -56,6 +63,44 @@ typedef unsigned long ulong;
 // Macros
 #define UPDATE_TIMER(tname,tval) tname = millis() + tval
 #define TIMER_ELAPSED(tname) ((long)(millis() - tname) >= 0)
+
+// Constants
+// Thanks to KB8OJH
+#define MORSE_NONE 1
+const unsigned char morse_ascii[] = {
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    0x73, MORSE_NONE, 0x55, 0x32,                   /* , _ . / */
+    0x3F, 0x2F, 0x27, 0x23,                         /* 0 1 2 3 */
+    0x21, 0x20, 0x30, 0x38,                         /* 4 5 6 7 */
+    0x3C, 0x37, MORSE_NONE, MORSE_NONE,             /* 8 9 _ _ */
+    MORSE_NONE, 0x31, MORSE_NONE, 0x4C,             /* _ = _ ? */
+    MORSE_NONE, 0x05, 0x18, 0x1A,                   /* _ A B C */
+    0x0C, 0x02, 0x12, 0x0E,                         /* D E F G */
+    0x10, 0x04, 0x17, 0x0D,                         /* H I J K */
+    0x14, 0x07, 0x06, 0x0F,                         /* L M N O */
+    0x16, 0x1D, 0x0A, 0x08,                         /* P Q R S */
+    0x03, 0x09, 0x11, 0x0B,                         /* T U V W */
+    0x19, 0x1B, 0x1C, MORSE_NONE,                   /* X Y Z _ */
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+    MORSE_NONE, 0x05, 0x18, 0x1A,                   /* _ A B C */
+    0x0C, 0x02, 0x12, 0x0E,                         /* D E F G */
+    0x10, 0x04, 0x17, 0x0D,                         /* H I J K */
+    0x14, 0x07, 0x06, 0x0F,                         /* L M N O */
+    0x16, 0x1D, 0x0A, 0x08,                         /* P Q R S */
+    0x03, 0x09, 0x11, 0x0B,                         /* T U V W */
+    0x19, 0x1B, 0x1C, MORSE_NONE,                   /* X Y Z _ */
+    MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
+};
 
 /////////////////////////////////////////////
 // Setup phase
@@ -89,15 +134,21 @@ uchar State = REPEATER_CLOSED;
 ulong closeTimer;
 ulong rogerBeepTimer;
 ulong beepToneTimer;
+ulong morseTimer;
 
 bool beepEnabled; // A Roger beep can be sent
 bool sqlOpen; // Current Squelch status
 bool beepOn = false; // Beep is currently enabled
+bool morseActive = false; // currently sending morse
+
+char* morseStr; // Pointer to the morse string
+int strCounter; // Morse string index
 
 void loop()
 {
   updateIO(); // Control PTT
   setRepeaterState();
+  morseGenerator(); // Morse generator task
 }
 
 void setRepeaterState()
@@ -114,7 +165,6 @@ void setRepeaterState()
       UPDATE_TIMER(closeTimer,INACTIVE_CLOSE);
       State = REPEATER_OPEN;
       Serial.print ("Opening\n");
-      noTone(PIN_MORSEOUT); // Remove any beep
     }
 
     break;
@@ -172,10 +222,10 @@ void updateIO()
 // Do a beep for a known time
 void startBeep(unsigned int pin, unsigned int freq, unsigned long duration)
 {
-  if (!beepOn)
+  if (!beepOn || !morseActive)
   {
     tone (pin, freq);
-    UPDATE_TIMER(beepToneTimer,BEEP_LENGTH);
+    UPDATE_TIMER(beepToneTimer,duration);
     beepOn = true;
   }
 }
@@ -188,6 +238,81 @@ void updateBeep(unsigned int pin)
   {
     noTone(pin);
     beepOn = false;
+  }
+}
+
+// Send morse command
+void sendMorse (char* message)
+{
+   morseActive = true;
+   morseStr = message;
+   strCounter = 0;
+}
+
+// Morse generation task
+void morseGenerator()
+{
+  static bool newChar = true;
+  static char currentChar = 0;
+  static char symCounter = 0;
+
+  if (newChar && morseActive) // Find first one
+  {
+    currentChar = morse_ascii[morseStr[strCounter]];
+    morseStr++;
+    if (!currentChar) // If end of string stop sending
+    {
+      morseActive = false;
+      currentChar = 0;
+    }
+    
+    while (!(currentChar & 0x80) && (symCounter < 8)) // Shift to find first one
+    {
+      currentChar <<= 1;
+      symCounter ++;
+    }
+    currentChar <<= 1; // Shift one to get the first element of the morse symbol
+    symCounter ++;
+    newChar = false;
+  }
+
+  if (TIMER_ELAPSED(morseTimer) && morseActive) // Generate symbols for every 
+  {
+    if (symCounter < 8) 
+    {
+      if (currentChar & 0x80) // Decode the higher bit
+        morseDash();
+      else
+        morseDot();
+  
+      currentChar <<= 1; 
+      symCounter ++;
+    }
+    else
+    {
+      symCounter = 0;
+      newChar = true;
+      currentChar = 0x0C;
+      UPDATE_TIMER(morseTimer,MORSE_LETTER_SPC);
+    }
+  }
+}
+
+void morseDash()
+{
+  if (TIMER_ELAPSED(morseTimer))
+  {
+    startBeep (PIN_MORSEOUT, MORSE_FREQ, MORSE_DASH);
+    UPDATE_TIMER(morseTimer,MORSE_DASH+MORSE_SYM_SPC);
+  }
+}
+
+void morseDot()
+{
+  if (TIMER_ELAPSED(morseTimer))
+  {
+    startBeep (PIN_MORSEOUT, MORSE_FREQ, MORSE_DOT);
+    UPDATE_TIMER(morseTimer,MORSE_DOT+MORSE_SYM_SPC);
   }
 }
 
