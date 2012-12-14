@@ -49,8 +49,13 @@
 #define REPEATER_CLOSED 0
 #define REPEATER_OPEN 1
 
+// Type definitions
 typedef unsigned char uchar;
 typedef unsigned long ulong;
+
+// Macros
+#define UPDATE_TIMER(tname,tval) tname = millis() + tval
+#define TIMER_ELAPSED(tname) ((long)(millis() - tname) >= 0)
 
 /////////////////////////////////////////////
 // Setup phase
@@ -74,9 +79,6 @@ void ioSetup()
   digitalWrite(PIN_PTT, LOW);
   digitalWrite(PIN_MORSEOUT, LOW);
 }
-
-#define UPDATE_TIMER(tname,tval) tname = millis() + tval
-#define TIMER_ELAPSED(tname) ((long)(millis() - tname) >= 0)
 
 /////////////////////////////////////////////
 // Main loop
