@@ -48,9 +48,17 @@
 
 #define USE_BEEP 1
 
+// BEHAVIOUR of the roger beep define only _ONE_ of those
+//#define ROGER_TONE
+#define ROGER_K
+
 // BEEP Frequencies
 #define BEEP_FREQ 800
 #define MORSE_FREQ 800
+
+char openMsg[] = "ON4SEB";
+char closeMsg[] = "SK";
+char kMsg[] = "K";
 
 // System Defines (DO NOT TOUCH)
 #define REPEATER_CLOSED 0
@@ -193,6 +201,7 @@ void setRepeaterState()
     {
       State = REPEATER_CLOSED;
       Serial.print ("Closing\n");
+      sendMorse (closeMsg);
     }
 
     // Roger Beep
@@ -200,11 +209,23 @@ void setRepeaterState()
     {
       Serial.print ("Beep\n");
       beepEnabled = false;
-      startBeep (PIN_MORSEOUT, BEEP_FREQ, BEEP_LENGTH);
+      rogerBeep();
     }
 
     break;
   }
+}
+
+// Generation of the Roger beep
+void rogerBeep()
+{
+#ifdef ROGER_TONE
+  startBeep (PIN_MORSEOUT, BEEP_FREQ, BEEP_LENGTH);
+#endif
+
+#ifdef ROGER_K
+  sendMorse(kMsg);
+#endif
 }
 
 // Control IO Pins
