@@ -210,6 +210,7 @@ void setRepeaterState()
       Serial.print ("Closing\n");
       sendMorse (closeMsg, (int) sizeof(closeMsg));
       State = REPEATER_MORSE;
+      UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after closing
     }
 
     // Roger Beep
