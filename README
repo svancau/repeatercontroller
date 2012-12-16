@@ -6,3 +6,64 @@ repeater controller.
 
 The code is provided under GNU GPL v3
 
+Features:
+- Fully non-blocking code
+- Easy to modify PIN allocation
+- Programmable delays
+- Programmable morse messages
+- Opening controllable by 1750, CTCSS, Carrier
+- Programmable Beacon
+- Too long PTT timer
+
+Configurations:
+- Pins (Pin Allocations)
+- DELAYS
+INACTIVE_CLOSE: delay from last PTT to repeater closing
+RELEASE_BEEP: delay between PTT release and roger beep
+BEEP_LENGTH: when single beep is used, length of the beep
+
+BEACON_DELAY: time between two beacons when repeater is closed
+TIMEOUT_DELAY: closes repeater if PTT is on for TIMEOUT_DELAY ms
+MORSE_DOT: time of the morse dot in ms
+
+USE_1750_OPEN: Open repeater when 1750 pin is asserted (1 for enabled)
+USE_CTCSS_OPEN: Open repeater when CTCSS pin is asserted (1 for enabled)
+USE_CARRIER_OPEN: Open repeater when Carrier pin is asserted (1 for enabled)
+
+USE_CTCSS_BUSY: active when CTCSS pin is asserted (1 for enabled)
+USE_CARRIER_BUSY: active when Carrier pin is asserted (1 for enabled)
+
+ROGER_TONE: use one single tone beep (exclusive with ROGER_K)
+ROGER_K: use morse K (exclusive with ROGER_TONE)
+
+BEEP_FREQ: Roger beep frequency
+MORSE_FREQ: Morse frequency
+
+Avoid modifying the other defines unless you know what you are doing...
+
+- Messages
+openMsg: message when repeater is opened
+closeMsg: message when the repeater is closing
+kMsg: message for roger beep
+beaconMsg: ID message when repeater is closed
+timeoutMsg: message when PTT is held for too long
+
+Code internals:
+In the setup function, pins are configured in ioSetup function.
+Serial is enabled for debug purposes. And Watchdog is enabled.
+
+In the loop function, PTT is controlled, repeater is controlled
+to be opened or closed. Morse is generated and beacon is controlled.
+
+Watchdog is reset every loop iteration and timeout is 8 s.
+
+Repeater can be in 3 states:
+REPEATER_CLOSED: Repeater is IDLE, identifying itself every 
+BEACON_DELAY. If the 1750, CTCSS or Carrier pin is enabled, State goes to 
+REPEATER_OPEN.
+
+REPEATER_OPEN: Detects Sql openings, Generates Roger beep
+and timeout timer
+
+REPEATER_MORSE: Currently sending morse, keeping PTT open before closing
+

@@ -38,6 +38,8 @@
 #define TIMEOUT_DELAY (600UL*1000UL)
 
 #define MORSE_DOT 60
+
+// Morse definitions (do not touch)
 #define MORSE_DASH (3*MORSE_DOT)
 // Spaces equal Number of dots - 1
 #define MORSE_SYM_SPC MORSE_DOT
@@ -52,8 +54,6 @@
 #define USE_CTCSS_BUSY 1
 #define USE_CARRIER_BUSY 1
 
-#define USE_BEEP 1
-
 // BEHAVIOUR of the roger beep define only _ONE_ of those
 //#define ROGER_TONE
 #define ROGER_K
@@ -62,6 +62,7 @@
 #define BEEP_FREQ 800
 #define MORSE_FREQ 800
 
+// Messages
 const char openMsg[] = "ON4SEB";
 const char closeMsg[] = "ON4SEB SK";
 const char kMsg[] = "K";
