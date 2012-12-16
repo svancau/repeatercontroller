@@ -31,6 +31,7 @@
 #define RELEASE_BEEP 200
 #define BEEP_LENGTH 100
 #define BEACON_DELAY (60000UL)
+#define TIMEOUT_DELAY (600UL*100UL)
 
 #define MORSE_DOT 60
 #define MORSE_DASH (3*MORSE_DOT)
@@ -61,6 +62,7 @@ const char openMsg[] = "ON4SEB";
 const char closeMsg[] = "ON4SEB SK";
 const char kMsg[] = "K";
 const char beaconMsg[] = "ON4SEB";
+const char timeoutMsg[] = "TOT";
 
 // System Defines (DO NOT TOUCH)
 #define REPEATER_CLOSED 0
@@ -147,6 +149,7 @@ ulong rogerBeepTimer;
 ulong beepToneTimer;
 ulong morseTimer;
 ulong beaconTimer;
+ulong timeoutTimer; // Cut too long keydowns
 
 bool beepEnabled; // A Roger beep can be sent
 bool sqlOpen; // Current Squelch status
@@ -190,11 +193,12 @@ void setRepeaterState()
     if ((USE_CTCSS_BUSY && digitalRead(PIN_CTCSS))
       || (USE_CARRIER_BUSY && digitalRead(PIN_CARRIER)))
     {
-      UPDATE_TIMER(closeTimer,INACTIVE_CLOSE); // Repeater closing timer
+      UPDATE_TIMER(closeTimer, INACTIVE_CLOSE); // Repeater closing timer
       sqlOpen = true;
     }
     else
     {
+      UPDATE_TIMER(timeoutTimer, TIMEOUT_DELAY); // Update only when PTT is released
       if (sqlOpen) // If the Squelch was previously opened
       {
         UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
@@ -206,11 +210,18 @@ void setRepeaterState()
     // Set timeout after a known time    
     if (TIMER_ELAPSED(closeTimer))
     {
-      State = REPEATER_CLOSED;
       Serial.print ("Closing\n");
       sendMorse (closeMsg, (int) sizeof(closeMsg));
       State = REPEATER_MORSE;
       UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after closing
+    }
+
+    // If the PTT is hold for too long, close the repeater
+    if (TIMER_ELAPSED(timeoutTimer))
+    {
+       Serial.print ("Timeout\n");
+       sendMorse (timeoutMsg, (int)sizeof(timeoutMsg));
+       State = REPEATER_MORSE;
     }
 
     // Roger Beep
