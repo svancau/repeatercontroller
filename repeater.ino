@@ -16,6 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <avr/wdt.h>
+
 ////////////////////////////////////////////
 // Static Repeater Configuration
 ////////////////////////////////////////////
@@ -124,6 +126,7 @@ void setup()
 {
   ioSetup();  
   Serial.begin(115200);
+  wdt_enable (WDTO_8S); // Enable watchdog
 }
 
 void ioSetup()
@@ -168,6 +171,7 @@ void loop()
   setRepeaterState();
   morseGenerator(); // Morse generator task
   beaconTask();
+  wdt_reset(); // reset 8s watchdog
 }
 
 void setRepeaterState()
