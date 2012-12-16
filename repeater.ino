@@ -70,9 +70,9 @@ const char beaconMsg[] = "ON4SEB";
 const char timeoutMsg[] = "TOT";
 
 // System Defines (DO NOT TOUCH)
-#define REPEATER_CLOSED 0
-#define REPEATER_OPEN 1
-#define REPEATER_MORSE 2
+enum State_t {REPEATER_CLOSED,
+  REPEATER_OPEN,
+  REPEATER_MORSE};
 
 // Type definitions
 typedef unsigned char uchar;
@@ -147,7 +147,7 @@ void ioSetup()
 /////////////////////////////////////////////
 // Main loop
 /////////////////////////////////////////////
-uchar State = REPEATER_CLOSED;
+State_t State = REPEATER_CLOSED;
 
 // Timers
 ulong closeTimer;
