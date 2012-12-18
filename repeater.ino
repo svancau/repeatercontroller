@@ -241,6 +241,7 @@ void setRepeaterState()
        Serial.print ("Timeout\n");
        sendMorse (timeoutMsg, (int)sizeof(timeoutMsg));
        State = REPEATER_CLOSING;
+       UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after timeout
     }
 
     // Roger Beep
