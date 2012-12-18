@@ -32,6 +32,8 @@
 #define INACTIVE_CLOSE 10000
 #define RELEASE_BEEP 200
 #define BEEP_LENGTH 100
+#define PTT_ON_DELAY 1000
+#define PTT_OFF_DELAY 1000
 
 // DELAYS (in ms)
 #define BEACON_DELAY (600UL*1000UL)
@@ -70,9 +72,14 @@ const char beaconMsg[] = "ON4SEB";
 const char timeoutMsg[] = "TOT";
 
 // System Defines (DO NOT TOUCH)
-enum State_t {REPEATER_CLOSED,
-  REPEATER_OPEN,
-  REPEATER_MORSE};
+enum State_t {
+  REPEATER_CLOSED, // Repeater IDLE
+  REPEATER_OPEN, // Repeater working
+  REPEATER_ID, // Repeater identifying when IDLE
+  REPEATER_CLOSING, // Repeater sending morse closing message
+  REPEATER_PTTON, // Wait before opening
+  REPEATER_PTTOFF // Wait after closing
+};
 
 // Type definitions
 typedef unsigned char uchar;
@@ -148,6 +155,7 @@ void ioSetup()
 // Main loop
 /////////////////////////////////////////////
 State_t State = REPEATER_CLOSED;
+State_t nextState = REPEATER_CLOSED; // State after PTT ON delay
 
 // Timers
 ulong closeTimer;
@@ -156,6 +164,8 @@ ulong beepToneTimer;
 ulong morseTimer;
 ulong beaconTimer;
 ulong timeoutTimer; // Cut too long keydowns
+ulong pttEnableTimer; // PTT enabled to morse
+ulong pttDisableTimer; // End of morse to PTT off
 
 bool beepEnabled; // A Roger beep can be sent
 bool sqlOpen; // Current Squelch status
@@ -187,7 +197,9 @@ void setRepeaterState()
       || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)))
     {
       UPDATE_TIMER(closeTimer,INACTIVE_CLOSE);
-      State = REPEATER_OPEN;
+      nextState = REPEATER_OPEN;
+      State = REPEATER_PTTON;
+      UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
       Serial.print ("Opening\n");
       sendMorse(openMsg, (int)sizeof(openMsg));
     }
@@ -219,7 +231,7 @@ void setRepeaterState()
     {
       Serial.print ("Closing\n");
       sendMorse (closeMsg, (int) sizeof(closeMsg));
-      State = REPEATER_MORSE;
+      State = REPEATER_CLOSING;
       UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after closing
     }
 
@@ -228,7 +240,7 @@ void setRepeaterState()
     {
        Serial.print ("Timeout\n");
        sendMorse (timeoutMsg, (int)sizeof(timeoutMsg));
-       State = REPEATER_MORSE;
+       State = REPEATER_CLOSING;
     }
 
     // Roger Beep
@@ -240,12 +252,56 @@ void setRepeaterState()
     }
 
     break;
-    // --------------- REPEATER SENDING MORSE -------
-    case REPEATER_MORSE: // Wait with PTT on till there is no morse to send
+    // --------------- REPEATER SENDING MORSE WHILE OPENED -------
+    case REPEATER_CLOSING: // Wait with PTT on till there is no morse to send
     if (!morseActive)
       {
-        State = REPEATER_CLOSED;
+        State = REPEATER_PTTOFF;
+        UPDATE_TIMER(pttDisableTimer, PTT_OFF_DELAY);
       }
+
+    break;
+
+    // --------------- REPEATER SENDING MORSE WHILE CLOSED -------
+    case REPEATER_ID: // Wait with PTT on till there is no morse to send
+    static bool idSent = false;
+
+    if (!idSent) // Send ID only once
+      {
+        sendMorse (beaconMsg, (int)sizeof(beaconMsg));
+        idSent = true;
+      }
+
+    if (!morseActive)
+      {
+        idSent = false;
+        State = REPEATER_PTTOFF;
+        UPDATE_TIMER(pttDisableTimer, PTT_OFF_DELAY);
+      }
+
+    break;
+
+    // --------------- REPEATER ON BEFORE MORSE -------
+    case REPEATER_PTTON: // PTT on before sending morse
+
+    if (TIMER_ELAPSED(pttEnableTimer))
+    {
+      State = nextState;
+      
+    }
+
+    break;
+
+    // --------------- REPEATER OFF AFTER MORSE -------
+    case REPEATER_PTTOFF: // PTT on after sending morse
+
+    if (TIMER_ELAPSED(pttDisableTimer))
+    {
+      State = REPEATER_CLOSED;
+    }
+
+    break;
+
   }
 }
 
@@ -267,8 +323,9 @@ void beaconTask()
 {
   if (TIMER_ELAPSED(beaconTimer) && (State == REPEATER_CLOSED))
   {
-    State = REPEATER_MORSE;
-    sendMorse (beaconMsg, (int)sizeof(beaconMsg));
+    nextState = REPEATER_ID;
+    State = REPEATER_PTTON;
+    UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
     UPDATE_TIMER(beaconTimer, BEACON_DELAY);
     Serial.print ("Beacon\n");
   }
