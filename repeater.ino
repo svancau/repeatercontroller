@@ -195,9 +195,7 @@ void setRepeaterState()
   // ----------- REPEATER IS IDLE ----------------
   case REPEATER_CLOSED:
     // Open Repeater
-    if ((USE_1750_OPEN && digitalRead(PIN_1750))
-      || (USE_CTCSS_OPEN && digitalRead(PIN_CTCSS))
-      || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)))
+    if (openRequest())
     {
       if (TIMER_ELAPSED(carrier1750openTimer))
       {
@@ -218,8 +216,7 @@ void setRepeaterState()
   // ----------- REPEATER IS OPENED ----------------
   case REPEATER_OPEN:
     // Keep repeater open as long there is some input
-    if ((USE_CTCSS_BUSY && digitalRead(PIN_CTCSS))
-      || (USE_CARRIER_BUSY && digitalRead(PIN_CARRIER)))
+    if (rxActive())
     {
       UPDATE_TIMER(closeTimer, INACTIVE_CLOSE); // Repeater closing timer
       sqlOpen = true;
@@ -392,6 +389,35 @@ void updateBeep(unsigned int pin)
     noTone(pin);
     beepOn = false;
   }
+}
+
+// Check if opening is requested
+bool openRequest()
+{
+  if ((USE_1750_OPEN && digitalRead(PIN_1750))
+      || (USE_CTCSS_OPEN && digitalRead(PIN_CTCSS))
+      || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)))
+      {
+        return true;
+      }
+  else
+      {
+        return false;
+      }
+}
+
+// Check if RX channel is active
+bool rxActive()
+{
+   if ((USE_CTCSS_BUSY && digitalRead(PIN_CTCSS))
+      || (USE_CARRIER_BUSY && digitalRead(PIN_CARRIER)))
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
 }
 
 // Send morse command
