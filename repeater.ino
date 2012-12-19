@@ -347,13 +347,22 @@ void rogerBeep()
 // Beacon task
 void beaconTask()
 {
-  if (TIMER_ELAPSED(beaconTimer) && (State == REPEATER_CLOSED))
+  if (TIMER_ELAPSED(beaconTimer))
   {
-    nextState = REPEATER_ID;
-    State = REPEATER_PTTON;
-    UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
+    if (State == REPEATER_CLOSED)
+    {
+      nextState = REPEATER_ID;
+      State = REPEATER_PTTON;
+      UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
+      Serial.print ("Beacon closed\n");
+    }
+    else if (State == REPEATER_OPEN && (!morseActive) && (!beepEnabled) && (!rxActive()))
+    {
+      sendMorse (beaconMsg, (int)sizeof(beaconMsg));
+      Serial.print ("Beacon open\n");
+    }
+
     UPDATE_TIMER(beaconTimer, BEACON_DELAY);
-    Serial.print ("Beacon\n");
   }
 }
 
