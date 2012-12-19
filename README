@@ -23,6 +23,7 @@ RELEASE_BEEP: delay between PTT release and roger beep
 BEEP_LENGTH: when single beep is used, length of the beep
 PTT_ON_DELAY: Time between PTT on and morse
 PTT_OFF_DELAY: Time between morse and PTT off
+CARRIER_1750_DELAY: Required 1750/Carrier length before opening
 
 BEACON_DELAY: time between two beacons when repeater is closed
 TIMEOUT_DELAY: closes repeater if PTT is on for TIMEOUT_DELAY ms

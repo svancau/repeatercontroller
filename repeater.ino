@@ -34,6 +34,7 @@
 #define BEEP_LENGTH 100
 #define PTT_ON_DELAY 1000
 #define PTT_OFF_DELAY 1000
+#define CARRIER_1750_DELAY 500
 
 // DELAYS (in ms)
 #define BEACON_DELAY (600UL*1000UL)
@@ -167,6 +168,7 @@ ulong beaconTimer;
 ulong timeoutTimer; // Cut too long keydowns
 ulong pttEnableTimer; // PTT enabled to morse
 ulong pttDisableTimer; // End of morse to PTT off
+ulong carrier1750openTimer; // Carrier/1750 length before opening
 
 bool beepEnabled; // A Roger beep can be sent
 bool sqlOpen; // Current Squelch status
@@ -197,11 +199,18 @@ void setRepeaterState()
       || (USE_CTCSS_OPEN && digitalRead(PIN_CTCSS))
       || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)))
     {
-      UPDATE_TIMER(closeTimer,INACTIVE_CLOSE);
-      State = REPEATER_PTTON;
-      nextState = REPEATER_OPENING;
-      UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
-      Serial.print ("Opening\n");
+      if (TIMER_ELAPSED(carrier1750openTimer))
+      {
+        UPDATE_TIMER(closeTimer,INACTIVE_CLOSE);
+        State = REPEATER_PTTON;
+        nextState = REPEATER_OPENING;
+        UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
+        Serial.print ("Opening\n");
+      }
+    }
+    else
+    { // When no opening request is done, update timer
+      UPDATE_TIMER(carrier1750openTimer, CARRIER_1750_DELAY);
     }
 
     break;
