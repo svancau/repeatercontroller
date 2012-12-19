@@ -76,6 +76,7 @@ enum State_t {
   REPEATER_CLOSED, // Repeater IDLE
   REPEATER_OPEN, // Repeater working
   REPEATER_ID, // Repeater identifying when IDLE
+  REPEATER_OPENING, // Repeater sending morse opening message
   REPEATER_CLOSING, // Repeater sending morse closing message
   REPEATER_PTTON, // Wait before opening
   REPEATER_PTTOFF // Wait after closing
@@ -197,11 +198,10 @@ void setRepeaterState()
       || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)))
     {
       UPDATE_TIMER(closeTimer,INACTIVE_CLOSE);
-      nextState = REPEATER_OPEN;
       State = REPEATER_PTTON;
+      nextState = REPEATER_OPENING;
       UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
       Serial.print ("Opening\n");
-      sendMorse(openMsg, (int)sizeof(openMsg));
     }
 
     break;
@@ -253,6 +253,25 @@ void setRepeaterState()
     }
 
     break;
+
+    // --------------- REPEATER SENDING MORSE WHILE OPENING -------
+    case REPEATER_OPENING: // Wait with PTT on till there is no morse to send
+    static bool openSent = false;
+
+    if (!openSent) // Send ID only once
+      {
+        sendMorse (openMsg, (int)sizeof(openMsg));
+        openSent = true;
+      }
+
+    if (!morseActive)
+      {
+        openSent = false;
+        State = REPEATER_OPEN;
+      }
+
+    break;
+
     // --------------- REPEATER SENDING MORSE WHILE OPENED -------
     case REPEATER_CLOSING: // Wait with PTT on till there is no morse to send
     if (!morseActive)
