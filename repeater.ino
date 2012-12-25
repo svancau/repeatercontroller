@@ -21,6 +21,10 @@
 ////////////////////////////////////////////
 // Static Repeater Configuration
 ////////////////////////////////////////////
+
+// Debug Mode (set to 0 to enable Watchdog)
+#define USE_DEBUGMODE 0
+
 // PINS
 #define PIN_1750 4
 #define PIN_CTCSS 5
@@ -136,7 +140,9 @@ void setup()
 {
   ioSetup();  
   Serial.begin(115200);
+#if (!USE_DEBUGMODE)
   wdt_enable (WDTO_8S); // Enable watchdog
+#endif
 }
 
 void ioSetup()
@@ -185,7 +191,9 @@ void loop()
   setRepeaterState();
   morseGenerator(); // Morse generator task
   beaconTask();
+#if (!USE_DEBUGMODE)
   wdt_reset(); // reset 8s watchdog
+#endif
 }
 
 void setRepeaterState()
