@@ -189,8 +189,6 @@ State_t nextState = REPEATER_CLOSED; // State after PTT ON delay
 // Timers
 ulong closeTimer;
 ulong rogerBeepTimer;
-ulong beepToneTimer;
-ulong morseTimer;
 ulong beaconTimer;
 ulong timeoutTimer; // Cut too long keydowns
 ulong pttEnableTimer; // PTT enabled to morse
@@ -203,10 +201,6 @@ bool beepEnabled; // A Roger beep can be sent
 bool sqlOpen; // Current Squelch status
 bool beepOn = false; // Beep is currently enabled
 bool morseActive = false; // currently sending morse
-
-char* morseStr; // Pointer to the morse string
-int strCounter; // Morse string index
-int strCounterMax; // End of message index
 
 void loop()
 {
@@ -409,46 +403,6 @@ void updateIO()
   updateBeep(); // Stop the beep when timer elapsed
 }
 
-// Configure timer for morse PWM
-void setupTimer()
-{
-#if defined(__AVR_ATmega32U4__)
-  TCCR3A = (1 << WGM30); // Enable Fast PWM mode
-  TCCR3B = (1 << WGM32) | (1 << CS30); // Prescaler = 1
-  DDRC |= (1 << DDC6); // Pin 6 as output
-#endif
-}
-
-// Do a beep for a known time
-void startBeep(unsigned int freq, unsigned long duration)
-{
-  if (!beepOn)
-  {
-#if defined(__AVR_ATmega32U4__)
-    TCCR3A |= (1 << COM3A1); // Enable comparator output
-    TIMSK3 |= (1 << TOIE3); // Enable Timer interrupt
-#endif
-
-    UPDATE_TIMER(beepToneTimer,duration);
-    beepOn = true;
-  }
-}
-
-// Check that the beep time is elapsed and stop it if needed
-// CALLED only once in updateIO
-void updateBeep()
-{
-  if (beepOn && TIMER_ELAPSED(beepToneTimer))
-  {
-#if defined(__AVR_ATmega32U4__)
-    TCCR3A &= ~(1 << COM3A1); // Enable comparator output
-    TIMSK3 &= ~(1 << TOIE3); // Enable Timer interrupt
-#endif
-
-    beepOn = false;
-  }
-}
-
 // Check if opening is requested
 bool openRequest()
 {
@@ -464,93 +418,3 @@ bool rxActive()
     || (USE_CARRIER_BUSY && digitalRead(PIN_CARRIER)));
 }
 
-// Send morse command
-void sendMorse (const char* message, int length)
-{
-  if (! morseActive) // If no morse is being sent do it otherwise drop
-  {
-    morseActive = true;
-    morseStr = (char*)message;
-    strCounter = 0;
-    strCounterMax = length;
-  }
-}
-
-// Morse generation task
-void morseGenerator()
-{
-  static bool newChar = true;
-  static char currentChar = 0;
-  static char symCounter = 0;
-
-  if (newChar && morseActive) // Find first one
-  {
-    currentChar = pgm_read_byte_near(morse_ascii + morseStr[strCounter]);
-    strCounter++;
-    if (strCounter >= strCounterMax) // If end of string stop sending
-    {
-      morseActive = false;
-      currentChar = 0;
-    }
-
-    while (!(currentChar & 0x80) && (symCounter < 8)) // Shift to find first one
-    {
-      currentChar <<= 1;
-      symCounter ++;
-    }
-    currentChar <<= 1; // Shift one to get the first element of the morse symbol
-    symCounter ++;
-    newChar = false;
-  }
-
-  if (TIMER_ELAPSED(morseTimer) && morseActive) // Generate symbols for every 
-  {
-    if (symCounter < 8) 
-    {
-      if (currentChar & 0x80) // Decode the higher bit
-        morseDash();
-      else
-        morseDot();
-  
-      currentChar <<= 1; 
-      symCounter ++;
-    }
-    else
-    {
-      symCounter = 0;
-      newChar = true;
-      currentChar = 0x0C;
-      UPDATE_TIMER(morseTimer,MORSE_LETTER_SPC);
-    }
-  }
-}
-
-void morseDash()
-{
-  if (TIMER_ELAPSED(morseTimer))
-  {
-    startBeep (MORSE_FREQ, MORSE_DASH);
-    UPDATE_TIMER(morseTimer,MORSE_DASH+MORSE_SYM_SPC);
-  }
-}
-
-void morseDot()
-{
-  if (TIMER_ELAPSED(morseTimer))
-  {
-    startBeep (MORSE_FREQ, MORSE_DOT);
-    UPDATE_TIMER(morseTimer,MORSE_DOT+MORSE_SYM_SPC);
-  }
-}
-
-// Tone generation DDS timer overflow interrupt
-// For Arduino Leonardo
-#if defined(__AVR_ATmega32U4__)
-ISR(TIMER3_OVF_vect)
-{
-  unsigned char index; // Sample Index
-  ddsPhaseAccu += 0x04400000UL;
-  index = ddsPhaseAccu >> 24;
-  OCR3A = pgm_read_byte_near(sine + index);
-}
-#endif
