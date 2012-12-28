@@ -102,7 +102,7 @@ typedef unsigned long ulong;
 // Constants
 // Thanks to KB8OJH
 #define MORSE_NONE 1
-const unsigned char morse_ascii[] = {
+PROGMEM prog_uchar morse_ascii[] = {
   MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
   MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
   MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
@@ -485,7 +485,7 @@ void morseGenerator()
 
   if (newChar && morseActive) // Find first one
   {
-    currentChar = morse_ascii[morseStr[strCounter]];
+    currentChar = pgm_read_byte_near(morse_ascii + morseStr[strCounter]);
     strCounter++;
     if (strCounter >= strCounterMax) // If end of string stop sending
     {
