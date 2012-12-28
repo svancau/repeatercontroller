@@ -17,6 +17,9 @@
 */
 
 #include <avr/wdt.h>
+#include <avr/interrupt.h>
+#include <avr/io.h>
+#include <avr/progmem.h>
 
 ////////////////////////////////////////////
 // Static Repeater Configuration
