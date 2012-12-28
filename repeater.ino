@@ -175,11 +175,9 @@ void ioSetup()
   pinMode (PIN_CTCSS, INPUT);
   pinMode (PIN_CARRIER, INPUT);
   pinMode (PIN_PTT, OUTPUT);
-  pinMode (PIN_MORSEOUT, OUTPUT);
 
   // Set it low by default
   digitalWrite(PIN_PTT, LOW);
-  digitalWrite(PIN_MORSEOUT, LOW);
 }
 
 /////////////////////////////////////////////
