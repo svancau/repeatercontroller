@@ -452,30 +452,16 @@ void updateBeep()
 // Check if opening is requested
 bool openRequest()
 {
-  if ((USE_1750_OPEN && digitalRead(PIN_1750))
-      || (USE_CTCSS_OPEN && digitalRead(PIN_CTCSS))
-      || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)))
-      {
-        return true;
-      }
-  else
-      {
-        return false;
-      }
+  return ((USE_1750_OPEN && digitalRead(PIN_1750))
+    || (USE_CTCSS_OPEN && digitalRead(PIN_CTCSS))
+    || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)));
 }
 
 // Check if RX channel is active
 bool rxActive()
 {
-   if ((USE_CTCSS_BUSY && digitalRead(PIN_CTCSS))
-      || (USE_CARRIER_BUSY && digitalRead(PIN_CARRIER)))
-    {
-      return true;
-    }
-    else
-    {
-      return false;
-    }
+  return ((USE_CTCSS_BUSY && digitalRead(PIN_CTCSS))
+    || (USE_CARRIER_BUSY && digitalRead(PIN_CARRIER)));
 }
 
 // Send morse command
