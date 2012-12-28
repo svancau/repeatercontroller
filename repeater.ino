@@ -101,62 +101,6 @@ typedef unsigned long ulong;
 #define UPDATE_TIMER(tname,tval) tname = millis() + tval
 #define TIMER_ELAPSED(tname) ((long)(millis() - tname) >= 0)
 
-// Constants
-// Thanks to KB8OJH
-#define MORSE_NONE 1
-PROGMEM prog_uchar morse_ascii[] = {
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  0x73, MORSE_NONE, 0x55, 0x32,                   /* , _ . / */
-  0x3F, 0x2F, 0x27, 0x23,                         /* 0 1 2 3 */
-  0x21, 0x20, 0x30, 0x38,                         /* 4 5 6 7 */
-  0x3C, 0x37, MORSE_NONE, MORSE_NONE,             /* 8 9 _ _ */
-  MORSE_NONE, 0x31, MORSE_NONE, 0x4C,             /* _ = _ ? */
-  MORSE_NONE, 0x05, 0x18, 0x1A,                   /* _ A B C */
-  0x0C, 0x02, 0x12, 0x0E,                         /* D E F G */
-  0x10, 0x04, 0x17, 0x0D,                         /* H I J K */
-  0x14, 0x07, 0x06, 0x0F,                         /* L M N O */
-  0x16, 0x1D, 0x0A, 0x08,                         /* P Q R S */
-  0x03, 0x09, 0x11, 0x0B,                         /* T U V W */
-  0x19, 0x1B, 0x1C, MORSE_NONE,                   /* X Y Z _ */
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-  MORSE_NONE, 0x05, 0x18, 0x1A,                   /* _ A B C */
-  0x0C, 0x02, 0x12, 0x0E,                         /* D E F G */
-  0x10, 0x04, 0x17, 0x0D,                         /* H I J K */
-  0x14, 0x07, 0x06, 0x0F,                         /* L M N O */
-  0x16, 0x1D, 0x0A, 0x08,                         /* P Q R S */
-  0x03, 0x09, 0x11, 0x0B,                         /* T U V W */
-  0x19, 0x1B, 0x1C, MORSE_NONE,                   /* X Y Z _ */
-  MORSE_NONE, MORSE_NONE, MORSE_NONE, MORSE_NONE,
-};
-
-// Sine wave table
-PROGMEM prog_uchar sine[] = {
-  127,130,133,136,139,143,146,149,152,155,158,161,164,167,170,173,
-  176,178,181,184,187,190,192,195,198,200,203,205,208,210,212,215,
-  217,219,221,223,225,227,229,231,233,234,236,238,239,240,242,243,
-  244,245,247,248,249,249,250,251,252,252,253,253,253,254,254,254,
-  254,254,254,254,253,253,253,252,252,251,250,249,249,248,247,245,
-  244,243,242,240,239,238,236,234,233,231,229,227,225,223,221,219,
-  217,215,212,210,208,205,203,200,198,195,192,190,187,184,181,178,
-  176,173,170,167,164,161,158,155,152,149,146,143,139,136,133,130,
-  127,124,121,118,115,111,108,105,102,99,96,93,90,87,84,81,78,76,
-  73,70,67,64,62,59,56,54,51,49,46,44,42,39,37,35,33,31,29,27,25,
-  23,21,20,18,16,15,14,12,11,10,9,7,6,5,5,4,3,2,2,1,1,1,0,0,0,0,
-  0,0,0,1,1,1,2,2,3,4,5,5,6,7,9,10,11,12,14,15,16,18,20,21,23,25,
-  27,29,31,33,35,37,39,42,44,46,49,51,54,56,59,62,64,67,70,73,76,
-  78,81,84,87,90,93,96,99,102,105,108,111,115,118,121,124
-};
-
 /////////////////////////////////////////////
 // Setup phase
 /////////////////////////////////////////////
