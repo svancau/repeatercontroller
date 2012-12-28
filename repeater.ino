@@ -73,6 +73,8 @@
 #define BEEP_FREQ 800
 #define MORSE_FREQ 800
 
+#define CPU_FREQ 16000000UL
+
 // Messages
 const char openMsg[] = "ON4SEB";
 const char closeMsg[] = "ON4SEB SK";
@@ -194,8 +196,6 @@ ulong timeoutTimer; // Cut too long keydowns
 ulong pttEnableTimer; // PTT enabled to morse
 ulong pttDisableTimer; // End of morse to PTT off
 ulong carrier1750openTimer; // Carrier/1750 length before opening
-
-ulong ddsPhaseAccu; // DDS Phase accumulator
 
 bool beepEnabled; // A Roger beep can be sent
 bool sqlOpen; // Current Squelch status

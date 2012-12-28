@@ -20,6 +20,8 @@
 
 // Timers
 ulong beepToneTimer;
+ulong ddsTuningWord; // DDS tuning word
+ulong ddsPhaseAccu; // DDS Phase accumulator
 
 // Configure timer for morse PWM
 void setupTimer()
@@ -34,6 +36,7 @@ void setupTimer()
 // Do a beep for a known time
 void startBeep(unsigned int freq, unsigned long duration)
 {
+  ddsTuningWord = (4294967295UL / (CPU_FREQ/256)) * freq;
   if (!beepOn)
   {
 #if defined(__AVR_ATmega32U4__)
@@ -67,7 +70,7 @@ void updateBeep()
 ISR(TIMER3_OVF_vect)
 {
   unsigned char index; // Sample Index
-  ddsPhaseAccu += 0x04400000UL;
+  ddsPhaseAccu += ddsTuningWord;
   index = ddsPhaseAccu >> 24;
   OCR3A = pgm_read_byte_near(sine + index);
 }
