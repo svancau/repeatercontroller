@@ -249,7 +249,7 @@ void setRepeaterState()
     break;
 
     // --------------- REPEATER SENDING MORSE WHILE OPENED -------
-    case REPEATER_CLOSING: // Wait with PTT on till there is no morse to send
+    case REPEATER_CLOSING: // Wait with PTT on till there is no more morse to send
     if (!morseActive)
       {
         State = REPEATER_PTTOFF;
