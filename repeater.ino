@@ -33,6 +33,9 @@
 #define PIN_CTCSS 4
 #define PIN_CARRIER 6
 #define PIN_PTT 13
+// Pins for Audio Mux
+#define PIN_AMUX0 8
+#define PIN_AMUX1 9
 // PIN for MORSE OUTPUT is fixed to 5 for Arduino Leonardo
 // PIN for MORSE OUTPUT is fixed to 11 for Arduino Uno
 // /!\ WARNING DO NOT USE tone() function as we act directly on TIMERS
@@ -122,9 +125,13 @@ void ioSetup()
   pinMode (PIN_CTCSS, INPUT);
   pinMode (PIN_CARRIER, INPUT);
   pinMode (PIN_PTT, OUTPUT);
+  pinMode (PIN_AMUX0, OUTPUT);
+  pinMode (PIN_AMUX1, OUTPUT);
 
   // Set it low by default
   digitalWrite(PIN_PTT, LOW);
+  digitalWrite(PIN_AMUX0, LOW);
+  digitalWrite(PIN_AMUX1, LOW);
 }
 
 /////////////////////////////////////////////
@@ -344,6 +351,29 @@ void updateIO()
     digitalWrite(PIN_PTT, HIGH);
   else
     digitalWrite(PIN_PTT, LOW);
+
+  // Control the Audio Mux depending on repeater state
+  if (State != REPEATER_OPEN)
+  {
+    // Use CW input
+    digitalWrite(PIN_AMUX0, HIGH);
+    digitalWrite(PIN_AMUX1, LOW);
+  }
+  else
+  {
+    if (morseActive || beepOn)
+    {
+      // Use CW input
+      digitalWrite(PIN_AMUX0, HIGH);
+      digitalWrite(PIN_AMUX1, LOW);
+    }
+    else
+    {
+      // Use Audio Input
+      digitalWrite(PIN_AMUX0, LOW);
+      digitalWrite(PIN_AMUX1, HIGH);
+    }
+  }
 
   updateBeep(); // Stop the beep when timer elapsed
 }
