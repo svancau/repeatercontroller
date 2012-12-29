@@ -134,6 +134,14 @@ void ioSetup()
   digitalWrite(PIN_AMUX1, LOW);
 }
 
+void debugPrint (String msg)
+{
+#if (USE_DEBUGMODE)
+  Serial.print (String(millis()));
+  Serial.println (" "+msg);
+#endif
+}
+
 /////////////////////////////////////////////
 // Main loop
 /////////////////////////////////////////////
@@ -180,7 +188,7 @@ void setRepeaterState()
         State = REPEATER_PTTON;
         nextState = REPEATER_OPENING;
         UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
-        Serial.print ("Opening\n");
+        debugPrint ("Opening\n");
       }
     }
     else
@@ -212,7 +220,7 @@ void setRepeaterState()
     // Set timeout after a known time    
     if (TIMER_ELAPSED(closeTimer))
     {
-      Serial.print ("Closing\n");
+      debugPrint ("Closing\n");
       sendMorse (closeMsg, (int) sizeof(closeMsg));
       State = REPEATER_CLOSING;
       UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after closing
@@ -221,7 +229,7 @@ void setRepeaterState()
     // If the PTT is hold for too long, close the repeater
     if (TIMER_ELAPSED(timeoutTimer))
     {
-       Serial.print ("Timeout\n");
+       debugPrint ("Timeout\n");
        sendMorse (timeoutMsg, (int)sizeof(timeoutMsg));
        State = REPEATER_CLOSING;
        UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after timeout
@@ -230,7 +238,7 @@ void setRepeaterState()
     // Roger Beep
     if (beepEnabled && TIMER_ELAPSED(rogerBeepTimer)) // PTT Release time to roger beep
     {
-      Serial.print ("Beep\n");
+      debugPrint ("Beep\n");
       beepEnabled = false;
       rogerBeep();
     }
@@ -331,12 +339,12 @@ void beaconTask()
       nextState = REPEATER_ID;
       State = REPEATER_PTTON;
       UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
-      Serial.print ("Beacon closed\n");
+      debugPrint ("Beacon closed\n");
     }
     else if (State == REPEATER_OPEN && (!morseActive) && (!beepEnabled) && (!rxActive()))
     {
       sendMorse (beaconMsg, (int)sizeof(beaconMsg));
-      Serial.print ("Beacon open\n");
+      debugPrint ("Beacon open\n");
     }
 
     UPDATE_TIMER(beaconTimer, BEACON_DELAY);
