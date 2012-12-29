@@ -34,6 +34,7 @@
 #define PIN_CARRIER 6
 #define PIN_PTT 13
 // PIN for MORSE OUTPUT is fixed to 5 for Arduino Leonardo
+// PIN for MORSE OUTPUT is fixed to 11 for Arduino Uno
 // /!\ WARNING DO NOT USE tone() function as we act directly on TIMERS
 
 // DELAYS (in ms)
