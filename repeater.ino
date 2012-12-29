@@ -29,11 +29,11 @@
 #define USE_DEBUGMODE 0
 
 // PINS
-#define PIN_1750 4
-#define PIN_CTCSS 5
+#define PIN_1750 3
+#define PIN_CTCSS 4
 #define PIN_CARRIER 6
 #define PIN_PTT 13
-// PIN for MORSE OUTPUT is fixed to 6 for Arduino Leonardo
+// PIN for MORSE OUTPUT is fixed to 5 for Arduino Leonardo
 // /!\ WARNING DO NOT USE tone() function as we act directly on TIMERS
 
 // DELAYS (in ms)
@@ -65,7 +65,7 @@
 #define USE_CTCSS_BUSY 1
 #define USE_CARRIER_BUSY 1
 
-// BEHAVIOUR of the roger beep define only _ONE_ of those
+// BEHAVIOUR of the roger beep define only _ONE_ of those or none
 //#define ROGER_TONE
 #define ROGER_K
 
