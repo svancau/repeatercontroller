@@ -40,6 +40,13 @@
 // PIN for MORSE OUTPUT is fixed to 11 for Arduino Uno
 // /!\ WARNING DO NOT USE tone() function as we act directly on TIMERS
 
+// DTMF decoder
+#define PIN_8870_D0 8
+#define PIN_8870_D1 9
+#define PIN_8870_D2 10
+#define PIN_8870_D3 12
+#define PIN_8870_STB 13
+
 // DELAYS (in ms)
 #define INACTIVE_CLOSE 10000
 #define RELEASE_BEEP 200
@@ -168,6 +175,7 @@ void loop()
   setRepeaterState();
   morseGenerator(); // Morse generator task
   beaconTask();
+  dtmfCaptureTask();
 #if (!USE_DEBUGMODE)
   wdt_reset(); // reset 8s watchdog
 #endif
