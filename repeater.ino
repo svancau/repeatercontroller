@@ -59,9 +59,10 @@
 #define BEACON_DELAY (600UL*1000UL)
 #define TIMEOUT_DELAY (600UL*1000UL)
 
-#define MORSE_DOT 60
+#define MORSE_WPM 20
 
 // Morse definitions (do not touch)
+#define MORSE_DOT (1200/MORSE_WPM)
 #define MORSE_DASH (3*MORSE_DOT)
 // Spaces equal Number of dots - 1
 #define MORSE_SYM_SPC MORSE_DOT
