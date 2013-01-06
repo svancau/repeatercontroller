@@ -348,14 +348,14 @@ void beaconTask()
       State = REPEATER_PTTON;
       UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
       debugPrint ("Beacon closed\n");
+      UPDATE_TIMER(beaconTimer, BEACON_DELAY);
     }
     else if (State == REPEATER_OPEN && (!morseActive) && (!beepEnabled) && (!rxActive()))
     {
       sendMorse (beaconMsg, (int)sizeof(beaconMsg));
       debugPrint ("Beacon open\n");
+      UPDATE_TIMER(beaconTimer, BEACON_DELAY); // Update timer here to ensure that it will be retransmitted when rx is not active
     }
-
-    UPDATE_TIMER(beaconTimer, BEACON_DELAY);
   }
 }
 
