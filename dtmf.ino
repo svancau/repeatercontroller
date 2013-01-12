@@ -30,7 +30,7 @@ PROGMEM prog_uchar dtmf_table[16] =
 #define OKMSG "OK"
 #define NOKMSG "KO"
 
-char dtmfString[dtmfBufferSz+1]; // Keep place for trailing zero
+String dtmfString;
 bool prevStrobe = false;
 uchar dtmfStrIndex;
 
@@ -61,7 +61,7 @@ void interpretDTMF()
     switch (dtmfState)
     {
       case DTMF_IDLE:
-        if (String (dtmfString) == DTMF_ENTER_CODE)
+        if (dtmfString == DTMF_ENTER_CODE)
         {
           dtmfState = DTMF_AUTH;
           sendMorse (AUTHMSG);
@@ -69,7 +69,7 @@ void interpretDTMF()
         break;
 
       case DTMF_AUTH:
-        if (String (dtmfString) == DTMF_PASS)
+        if (dtmfString == DTMF_PASS)
         {
           dtmfState = DTMF_CMD;
           sendMorse (OKMSG);
