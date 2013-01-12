@@ -76,6 +76,7 @@
 
 #define USE_CTCSS_BUSY 1
 #define USE_CARRIER_BUSY 1
+#define USE_OPEN_ROGER_BEEP 0
 
 // BEHAVIOUR of the roger beep define only _ONE_ of those or none
 //#define ROGER_TONE
@@ -271,6 +272,8 @@ void setRepeaterState()
       {
         openSent = false;
         State = REPEATER_OPEN;
+        if (USE_OPEN_ROGER_BEEP)
+          rogerBeep(); // Send a roger beep once opened
       }
 
     break;
