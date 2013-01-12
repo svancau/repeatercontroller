@@ -81,6 +81,7 @@
 // BEHAVIOUR of the roger beep define only _ONE_ of those or none
 //#define ROGER_TONE
 #define ROGER_K
+//#define ROGER_SMETER
 
 // BEEP Frequencies
 #define BEEP_FREQ 800
@@ -341,6 +342,11 @@ void rogerBeep()
 
 #ifdef ROGER_K
   sendMorse(kMsg);
+#endif
+
+#ifdef ROGER_SMETER
+  // TODO: Attach a Smeter measurement to this
+  sendMorse("9");
 #endif
 }
 
