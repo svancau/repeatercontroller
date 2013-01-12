@@ -67,6 +67,11 @@ void sendMorse (String message)
     morseActive = true;
     morseStr = message;
     strCounter = 0;
+    debugPrint ("Sending Morse message : "+message);
+  }
+  else
+  {
+    debugPrint ("Dropped Morse message : "+message);
   }
 }
 

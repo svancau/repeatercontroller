@@ -200,7 +200,7 @@ void setRepeaterState()
         State = REPEATER_PTTON;
         nextState = REPEATER_OPENING;
         UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
-        debugPrint ("Opening\n");
+        debugPrint ("Opening");
       }
     }
     else
@@ -232,7 +232,7 @@ void setRepeaterState()
     // Set timeout after a known time    
     if (TIMER_ELAPSED(closeTimer))
     {
-      debugPrint ("Closing\n");
+      debugPrint ("Closing");
       sendMorse (closeMsg);
       State = REPEATER_CLOSING;
       UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after closing
@@ -241,7 +241,7 @@ void setRepeaterState()
     // If the PTT is hold for too long, close the repeater
     if (TIMER_ELAPSED(timeoutTimer))
     {
-       debugPrint ("Timeout\n");
+       debugPrint ("Timeout");
        sendMorse (timeoutMsg);
        State = REPEATER_CLOSING;
        UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after timeout
@@ -250,7 +250,7 @@ void setRepeaterState()
     // Roger Beep
     if (beepEnabled && TIMER_ELAPSED(rogerBeepTimer)) // PTT Release time to roger beep
     {
-      debugPrint ("Beep\n");
+      debugPrint ("Beep");
       beepEnabled = false;
       rogerBeep();
     }
@@ -351,13 +351,13 @@ void beaconTask()
       nextState = REPEATER_ID;
       State = REPEATER_PTTON;
       UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
-      debugPrint ("Beacon closed\n");
+      debugPrint ("Beacon closed");
       UPDATE_TIMER(beaconTimer, BEACON_DELAY);
     }
     else if (State == REPEATER_OPEN && (!morseActive) && (!beepEnabled) && (!rxActive()))
     {
       sendMorse (beaconMsg);
-      debugPrint ("Beacon open\n");
+      debugPrint ("Beacon open");
       UPDATE_TIMER(beaconTimer, BEACON_DELAY); // Update timer here to ensure that it will be retransmitted when rx is not active
     }
   }

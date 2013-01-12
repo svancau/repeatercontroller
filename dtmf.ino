@@ -43,7 +43,7 @@ void dtmfCaptureTask()
      dtmfIn = (digitalRead(PIN_8870_D0) | (digitalRead(PIN_8870_D1) << 1) |
      (digitalRead(PIN_8870_D2) << 2) | (digitalRead(PIN_8870_D3) << 3)); // Generate Input
      dtmfChar = pgm_read_byte_near (dtmf_table + dtmfIn);
-     debugPrint (String("Got DTMF ")+dtmfChar+"\n");
+     debugPrint (String("Got DTMF ")+dtmfChar);
      dtmfString[dtmfStrIndex] = dtmfChar;
      dtmfStrIndex = (dtmfStrIndex+1) % dtmfBufferSz;
      if (dtmfStrIndex == 0) // If we got 4 chars, interpret it
