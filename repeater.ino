@@ -45,7 +45,7 @@
 #define PIN_8870_D1 9
 #define PIN_8870_D2 10
 #define PIN_8870_D3 12
-#define PIN_8870_STB 13
+#define PIN_8870_STB 11
 
 // DELAYS (in ms)
 #define INACTIVE_CLOSE 10000
