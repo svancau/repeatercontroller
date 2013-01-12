@@ -26,9 +26,15 @@ PROGMEM prog_uchar dtmf_table[16] =
 #define DTMF_ENTER_CODE "A52D"
 #define DTMF_PASS "1234"
 
+// DTMF Commands
+#define DTMF_ALL_OFF "0000"
+#define DTMF_ALL_ON "1000"
+
 #define AUTHMSG "AUTH"
 #define OKMSG "OK"
 #define NOKMSG "KO"
+
+
 
 String dtmfString;
 bool prevStrobe = false;
@@ -82,6 +88,26 @@ void interpretDTMF()
         break;
 
       case DTMF_CMD:
+        if (dtmfString == DTMF_ALL_OFF)
+        {
+          Configuration.onBeaconEnabled = false;
+          Configuration.offBeaconEnabled = false;
+          Configuration.repeaterEnabled = false;
+          sendMorse (OKMSG);
+        }
+        else if (dtmfString == DTMF_ALL_ON)
+        {
+          Configuration.onBeaconEnabled = true;
+          Configuration.offBeaconEnabled = true;
+          Configuration.repeaterEnabled = true;
+          sendMorse (OKMSG);
+        }
+
+        // Default case : generate error
+        else
+        {
+          sendMorse(NOKMSG);
+        }
         break;
     }
 }

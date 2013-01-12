@@ -113,6 +113,15 @@ dtmfState_t dtmfState = DTMF_IDLE;
 // Type definitions
 typedef unsigned char uchar;
 typedef unsigned long ulong;
+struct Config_t
+{
+  bool onBeaconEnabled;
+  bool offBeaconEnabled;
+  bool rogerBeepEnabled;
+  bool repeaterEnabled;
+};
+
+struct Config_t Configuration;
 
 // Macros
 #define UPDATE_TIMER(tname,tval) tname = millis() + tval
@@ -125,6 +134,7 @@ void setup()
 {
   ioSetup();
   setupTimer();
+  repeaterSetup();
   Serial.begin(115200);
 #if (!USE_DEBUGMODE)
   wdt_enable (WDTO_8S); // Enable watchdog
@@ -145,6 +155,14 @@ void ioSetup()
   digitalWrite(PIN_PTT, LOW);
   digitalWrite(PIN_AMUX0, LOW);
   digitalWrite(PIN_AMUX1, LOW);
+}
+
+void repeaterSetup()
+{
+  Configuration.onBeaconEnabled = true;
+  Configuration.offBeaconEnabled = true;
+  Configuration.rogerBeepEnabled = true;
+  Configuration.repeaterEnabled = true;
 }
 
 void debugPrint (String msg)
@@ -335,19 +353,22 @@ void setRepeaterState()
 // Generation of the Roger beep
 void rogerBeep()
 {
+  if (Configuration.rogerBeepEnabled)
+  {
 #ifdef ROGER_TONE
-  if (!morseActive)
-    startBeep (BEEP_FREQ, BEEP_LENGTH);
+    if (!morseActive)
+      startBeep (BEEP_FREQ, BEEP_LENGTH);
 #endif
 
 #ifdef ROGER_K
-  sendMorse(KMSG);
+    sendMorse(KMSG);
 #endif
 
 #ifdef ROGER_SMETER
-  // TODO: Attach a Smeter measurement to this
-  sendMorse("9");
+    // TODO: Attach a Smeter measurement to this
+    sendMorse("9");
 #endif
+  }
 }
 
 // Beacon task
@@ -355,7 +376,7 @@ void beaconTask()
 {
   if (TIMER_ELAPSED(beaconTimer))
   {
-    if (State == REPEATER_CLOSED)
+    if (State == REPEATER_CLOSED && Configuration.offBeaconEnabled)
     {
       nextState = REPEATER_ID;
       State = REPEATER_PTTON;
@@ -363,7 +384,7 @@ void beaconTask()
       debugPrint ("Beacon closed");
       UPDATE_TIMER(beaconTimer, BEACON_DELAY);
     }
-    else if (State == REPEATER_OPEN && (!morseActive) && (!beepEnabled) && (!rxActive()))
+    else if (State == REPEATER_OPEN && (!morseActive) && (!beepEnabled) && (!rxActive()) && Configuration.onBeaconEnabled)
     {
       sendMorse (BEACONMSG);
       debugPrint ("Beacon open");
@@ -410,9 +431,10 @@ void updateIO()
 // Check if opening is requested
 bool openRequest()
 {
-  return ((USE_1750_OPEN && digitalRead(PIN_1750))
+  return (((USE_1750_OPEN && digitalRead(PIN_1750))
     || (USE_CTCSS_OPEN && digitalRead(PIN_CTCSS))
-    || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)));
+    || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)))
+    && Configuration.repeaterEnabled);
 }
 
 // Check if RX channel is active
