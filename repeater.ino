@@ -26,7 +26,7 @@
 ////////////////////////////////////////////
 
 // Debug Mode (set to 0 to enable Watchdog)
-#define USE_DEBUGMODE 0
+#define USE_DEBUGMODE 1
 
 // PINS
 #define PIN_1750 3
@@ -83,7 +83,7 @@
 
 // BEEP Frequencies
 #define BEEP_FREQ 800
-#define MORSE_FREQ 800
+#define MORSE_FREQ 650
 
 #define CPU_FREQ 16000000UL
 
@@ -104,6 +104,9 @@ enum State_t {
   REPEATER_PTTON, // Wait before opening
   REPEATER_PTTOFF // Wait after closing
 };
+
+enum dtmfState_t {DTMF_IDLE, DTMF_AUTH, DTMF_CMD};
+dtmfState_t dtmfState = DTMF_IDLE;
 
 // Type definitions
 typedef unsigned char uchar;
@@ -230,7 +233,7 @@ void setRepeaterState()
     if (TIMER_ELAPSED(closeTimer))
     {
       debugPrint ("Closing\n");
-      sendMorse (closeMsg, (int) sizeof(closeMsg));
+      sendMorse (closeMsg);
       State = REPEATER_CLOSING;
       UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after closing
     }
@@ -239,7 +242,7 @@ void setRepeaterState()
     if (TIMER_ELAPSED(timeoutTimer))
     {
        debugPrint ("Timeout\n");
-       sendMorse (timeoutMsg, (int)sizeof(timeoutMsg));
+       sendMorse (timeoutMsg);
        State = REPEATER_CLOSING;
        UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after timeout
     }
@@ -260,7 +263,7 @@ void setRepeaterState()
 
     if (!openSent) // Send ID only once
       {
-        sendMorse (openMsg, (int)sizeof(openMsg));
+        sendMorse (openMsg);
         openSent = true;
       }
 
@@ -288,7 +291,7 @@ void setRepeaterState()
 
     if (!idSent) // Send ID only once
       {
-        sendMorse (beaconMsg, (int)sizeof(beaconMsg));
+        sendMorse (beaconMsg);
         idSent = true;
       }
 
@@ -334,7 +337,7 @@ void rogerBeep()
 #endif
 
 #ifdef ROGER_K
-  sendMorse(kMsg, (int)sizeof(kMsg));
+  sendMorse(kMsg);
 #endif
 }
 
@@ -353,7 +356,7 @@ void beaconTask()
     }
     else if (State == REPEATER_OPEN && (!morseActive) && (!beepEnabled) && (!rxActive()))
     {
-      sendMorse (beaconMsg, (int)sizeof(beaconMsg));
+      sendMorse (beaconMsg);
       debugPrint ("Beacon open\n");
       UPDATE_TIMER(beaconTimer, BEACON_DELAY); // Update timer here to ensure that it will be retransmitted when rx is not active
     }
@@ -378,7 +381,7 @@ void updateIO()
   }
   else
   {
-    if (morseActive || beepOn)
+    if (morseActive || beepOn || dtmfState != DTMF_IDLE) // If no beep, morse or DTMF is present
     {
       // Use CW input
       digitalWrite(PIN_AMUX0, HIGH);

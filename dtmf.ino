@@ -21,11 +21,18 @@ PROGMEM prog_uchar dtmf_table[16] =
 {'D','1','2','3','4','5','6','7',
  '8','9','0','*','#','A','B','C'};
 
-#define dtmfBufferSz 16
+#define dtmfBufferSz 4
 
-char decodedString[dtmfBufferSz];
+#define DTMF_ENTER_CODE "A52D"
+#define DTMF_PASS "1234"
+
+const char authMsg[] = "AUTH";
+const char okMsg[] = "OK";
+const char nokMsg[] = "KO";
+
+char dtmfString[dtmfBufferSz+1]; // Keep place for trailing zero
 bool prevStrobe = false;
-uchar decodedStrIndex;
+uchar dtmfStrIndex;
 
 void dtmfCaptureTask()
 {
@@ -37,10 +44,44 @@ void dtmfCaptureTask()
      (digitalRead(PIN_8870_D2) << 2) | (digitalRead(PIN_8870_D3) << 3)); // Generate Input
      dtmfChar = pgm_read_byte_near (dtmf_table + dtmfIn);
      debugPrint (String("Got DTMF ")+dtmfChar+"\n");
-     decodedString[decodedStrIndex] = dtmfChar;
-     decodedStrIndex = (decodedStrIndex+1) % dtmfBufferSz;
+     dtmfString[dtmfStrIndex] = dtmfChar;
+     dtmfStrIndex = (dtmfStrIndex+1) % dtmfBufferSz;
+     if (dtmfStrIndex == 0) // If we got 4 chars, interpret it
+     {
+       debugPrint ("Analyzing DTMF code");
+       interpretDTMF();
+     }
    }
 
   prevStrobe = digitalRead(PIN_8870_STB);
 }
 
+void interpretDTMF()
+{
+    switch (dtmfState)
+    {
+      case DTMF_IDLE:
+        if (String (dtmfString) == DTMF_ENTER_CODE)
+        {
+          dtmfState = DTMF_AUTH;
+          sendMorse (authMsg);
+        }
+        break;
+
+      case DTMF_AUTH:
+        if (String (dtmfString) == DTMF_PASS)
+        {
+          dtmfState = DTMF_CMD;
+          sendMorse (okMsg);
+        }
+        else
+        {
+          dtmfState = DTMF_IDLE;
+          sendMorse(nokMsg);
+        }
+        break;
+
+      case DTMF_CMD:
+        break;
+    }
+}

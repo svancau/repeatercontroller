@@ -18,9 +18,8 @@
 
 ulong morseTimer;
 
-char* morseStr; // Pointer to the morse string
+String morseStr; // Pointer to the morse string
 int strCounter; // Morse string index
-int strCounterMax; // End of message index
 
 // Constants
 // Thanks to KB8OJH
@@ -61,14 +60,13 @@ PROGMEM prog_uchar morse_ascii[] = {
 };
 
 // Send morse command
-void sendMorse (const char* message, int length)
+void sendMorse (String message)
 {
   if (! morseActive) // If no morse is being sent do it otherwise drop
   {
     morseActive = true;
-    morseStr = (char*)message;
+    morseStr = message;
     strCounter = 0;
-    strCounterMax = length;
   }
 }
 
@@ -83,7 +81,7 @@ void morseGenerator()
   {
     currentChar = pgm_read_byte_near(morse_ascii + morseStr[strCounter]);
     strCounter++;
-    if (strCounter >= strCounterMax) // If end of string stop sending
+    if (strCounter >= morseStr.length()+1) // If end of string stop sending
     {
       morseActive = false;
       currentChar = 0;
