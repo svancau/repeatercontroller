@@ -26,9 +26,9 @@ PROGMEM prog_uchar dtmf_table[16] =
 #define DTMF_ENTER_CODE "A52D"
 #define DTMF_PASS "1234"
 
-const char authMsg[] = "AUTH";
-const char okMsg[] = "OK";
-const char nokMsg[] = "KO";
+#define AUTHMSG "AUTH"
+#define OKMSG "OK"
+#define NOKMSG "KO"
 
 char dtmfString[dtmfBufferSz+1]; // Keep place for trailing zero
 bool prevStrobe = false;
@@ -64,7 +64,7 @@ void interpretDTMF()
         if (String (dtmfString) == DTMF_ENTER_CODE)
         {
           dtmfState = DTMF_AUTH;
-          sendMorse (authMsg);
+          sendMorse (AUTHMSG);
         }
         break;
 
@@ -72,12 +72,12 @@ void interpretDTMF()
         if (String (dtmfString) == DTMF_PASS)
         {
           dtmfState = DTMF_CMD;
-          sendMorse (okMsg);
+          sendMorse (OKMSG);
         }
         else
         {
           dtmfState = DTMF_IDLE;
-          sendMorse(nokMsg);
+          sendMorse(NOKMSG);
         }
         break;
 

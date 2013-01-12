@@ -90,11 +90,11 @@
 #define CPU_FREQ 16000000UL
 
 // Messages
-const char openMsg[] = "ON4SEB";
-const char closeMsg[] = "ON4SEB SK";
-const char kMsg[] = "K";
-const char beaconMsg[] = "ON4SEB";
-const char timeoutMsg[] = "TOT";
+#define OPENMSG "ON4SEB"
+#define CLOSEMSG "ON4SEB SK"
+#define KMSG "K"
+#define BEACONMSG "ON4SEB"
+#define TIMEOUTMSG "TOT"
 
 // System Defines (DO NOT TOUCH)
 enum State_t {
@@ -235,7 +235,7 @@ void setRepeaterState()
     if (TIMER_ELAPSED(closeTimer))
     {
       debugPrint ("Closing");
-      sendMorse (closeMsg);
+      sendMorse (CLOSEMSG);
       State = REPEATER_CLOSING;
       UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after closing
     }
@@ -244,7 +244,7 @@ void setRepeaterState()
     if (TIMER_ELAPSED(timeoutTimer))
     {
        debugPrint ("Timeout");
-       sendMorse (timeoutMsg);
+       sendMorse (TIMEOUTMSG);
        State = REPEATER_CLOSING;
        UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after timeout
     }
@@ -265,7 +265,7 @@ void setRepeaterState()
 
     if (!openSent) // Send ID only once
       {
-        sendMorse (openMsg);
+        sendMorse (OPENMSG);
         openSent = true;
       }
 
@@ -295,7 +295,7 @@ void setRepeaterState()
 
     if (!idSent) // Send ID only once
       {
-        sendMorse (beaconMsg);
+        sendMorse (BEACONMSG);
         idSent = true;
       }
 
@@ -341,7 +341,7 @@ void rogerBeep()
 #endif
 
 #ifdef ROGER_K
-  sendMorse(kMsg);
+  sendMorse(KMSG);
 #endif
 
 #ifdef ROGER_SMETER
@@ -365,7 +365,7 @@ void beaconTask()
     }
     else if (State == REPEATER_OPEN && (!morseActive) && (!beepEnabled) && (!rxActive()))
     {
-      sendMorse (beaconMsg);
+      sendMorse (BEACONMSG);
       debugPrint ("Beacon open");
       UPDATE_TIMER(beaconTimer, BEACON_DELAY); // Update timer here to ensure that it will be retransmitted when rx is not active
     }
