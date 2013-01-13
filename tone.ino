@@ -44,16 +44,17 @@ PROGMEM prog_uchar sine[] = {
 // Configure timer for morse PWM
 void setupTimer()
 {
-// Arduino Leonardo
+  // Arduino Leonardo
 #if defined(__AVR_ATmega32U4__)
   TCCR3A = (1 << WGM30); // Enable Fast PWM mode
   TCCR3B = (1 << WGM32) | (1 << CS30); // Prescaler = 1
   DDRC |= (1 << DDC6); // Pin 6 as output
-// Arduino Uno
-#elif defined(__AVR_ATmega328__)
-  TCCR2A = (1 << WGM20); // Enable Fast PWM mode
-  TCCR2B = (1 << WGM22) | (1 << CS20); // Prescaler = 1
+  // Arduino Uno
+#else
+  TCCR2A = (1 << WGM21) | (1 << WGM20); // Enable Fast PWM mode
+  TCCR2B = (1 << CS20); // Prescaler = 1
   DDRB |= (1 << DDB3); // Pin 3 as output
+  OCR2A = 127;
 #endif
 }
 
@@ -63,12 +64,12 @@ void startBeep(unsigned int freq, unsigned long duration)
   ddsTuningWord = (4294967295UL / (CPU_FREQ/256)) * freq;
   if (!beepOn)
   {
-// Arduino Leonardo
+    // Arduino Leonardo
 #if defined(__AVR_ATmega32U4__)
     TCCR3A |= (1 << COM3A1); // Enable comparator output
     TIMSK3 |= (1 << TOIE3); // Enable Timer interrupt
-// Arduino Uno
-#elif defined(__AVR_ATmega328__)
+    // Arduino Uno
+#else
     TCCR2A |= (1 << COM2A1); // Enable comparator output
     TIMSK2 |= (1 << TOIE2); // Enable Timer interrupt
 #endif
@@ -84,14 +85,16 @@ void updateBeep()
 {
   if (beepOn && TIMER_ELAPSED(beepToneTimer))
   {
-// Arduino Leonardo
+    // Arduino Leonardo
 #if defined(__AVR_ATmega32U4__)
     TCCR3A &= ~(1 << COM3A1); // Disable comparator output
     TIMSK3 &= ~(1 << TOIE3); // Disable Timer interrupt
-// Arduino Uno
-#elif defined(__AVR_ATmega328__)
+    // Arduino Uno
+#else
+
     TCCR2A &= ~(1 << COM2A1); // Disable comparator output
     TIMSK2 &= ~(1 << TOIE2); // Disable Timer interrupt
+
 #endif
 
     beepOn = false;
@@ -112,7 +115,7 @@ ISR(TIMER3_OVF_vect)
 
 // Tone generation DDS timer overflow interrupt
 // For Arduino Uno
-#if defined(__AVR_ATmega328__)
+#if !defined(__AVR_ATmega32U4__)
 ISR(TIMER2_OVF_vect)
 {
   unsigned char index; // Sample Index
@@ -121,4 +124,6 @@ ISR(TIMER2_OVF_vect)
   OCR2A = pgm_read_byte_near(sine + index);
 }
 #endif
+
+
 
