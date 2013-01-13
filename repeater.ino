@@ -90,6 +90,7 @@
 #define CPU_FREQ 16000000UL
 
 // Messages
+#define POWER_ON_MSG "ON4SEB QRV"
 #define OPENMSG "ON4SEB"
 #define CLOSEMSG "ON4SEB SK"
 #define KMSG "K"
@@ -192,6 +193,9 @@ bool beepEnabled; // A Roger beep can be sent
 bool sqlOpen; // Current Squelch status
 bool beepOn = false; // Beep is currently enabled
 bool morseActive = false; // currently sending morse
+bool firstIdentification = true; // First time the CPU
+
+String cwMessage; // Message to send when off
 
 void loop()
 {
@@ -313,7 +317,7 @@ void setRepeaterState()
 
     if (!idSent) // Send ID only once
       {
-        sendMorse (BEACONMSG);
+        sendMorse (cwMessage);
         idSent = true;
       }
 
@@ -332,7 +336,6 @@ void setRepeaterState()
     if (TIMER_ELAPSED(pttEnableTimer))
     {
       State = nextState;
-      
     }
 
     break;
@@ -378,9 +381,16 @@ void beaconTask()
   {
     if (State == REPEATER_CLOSED && Configuration.offBeaconEnabled)
     {
-      nextState = REPEATER_ID;
-      State = REPEATER_PTTON;
-      UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
+      if (firstIdentification) // Power on identification message
+      {
+        sendClosedMorse (POWER_ON_MSG);
+        firstIdentification = false;
+      }
+      else
+      {
+        sendClosedMorse (BEACONMSG);
+      }
+
       debugPrint ("Beacon closed");
       UPDATE_TIMER(beaconTimer, BEACON_DELAY);
     }
@@ -442,5 +452,14 @@ bool rxActive()
 {
   return ((USE_CTCSS_BUSY && digitalRead(PIN_CTCSS))
     || (USE_CARRIER_BUSY && digitalRead(PIN_CARRIER)));
+}
+
+// Send Morse when closed with PTT control
+void sendClosedMorse(String msg)
+{
+  nextState = REPEATER_ID;
+  State = REPEATER_PTTON;
+  UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
+  cwMessage = msg;
 }
 
