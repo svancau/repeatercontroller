@@ -54,7 +54,6 @@ void setupTimer()
   TCCR2A = (1 << WGM21) | (1 << WGM20); // Enable Fast PWM mode
   TCCR2B = (1 << CS20); // Prescaler = 1
   DDRB |= (1 << DDB3); // Pin 3 as output
-  OCR2A = 127;
 #endif
 }
 
