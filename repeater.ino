@@ -28,9 +28,12 @@
 // Debug Mode (set to 0 to enable Watchdog)
 #define USE_DEBUGMODE 1
 
+#define DEFAULT_UNO
+
 // PINS
-#define PIN_1750 3
-#define PIN_CTCSS 4
+#ifdef DEFAULT_UNO
+#define PIN_1750 10
+#define PIN_CTCSS 12
 #define PIN_CARRIER 6
 #define PIN_PTT 13
 // Pins for Audio Mux
@@ -41,11 +44,12 @@
 // /!\ WARNING DO NOT USE tone() function as we act directly on TIMERS
 
 // DTMF decoder
-#define PIN_8870_D0 8
-#define PIN_8870_D1 9
-#define PIN_8870_D2 10
-#define PIN_8870_D3 12
+#define PIN_8870_D0 2
+#define PIN_8870_D1 3
+#define PIN_8870_D2 4
+#define PIN_8870_D3 5
 #define PIN_8870_STB 7
+#endif
 
 // DELAYS (in ms)
 #define INACTIVE_CLOSE 10000
