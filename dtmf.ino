@@ -21,6 +21,9 @@ PROGMEM prog_uchar dtmf_table[16] =
 {'D','1','2','3','4','5','6','7',
  '8','9','0','*','#','A','B','C'};
 
+ulong adminModeExitTimer;
+#define ADMIN_TIMEOUT 30000u
+
 #define dtmfBufferSz 4
 
 #define DTMF_ENTER_CODE "A52D"
@@ -57,6 +60,7 @@ void dtmfCaptureTask()
        debugPrint ("Analyzing DTMF code");
        interpretDTMF();
      }
+     UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT);
    }
 
   prevStrobe = digitalRead(PIN_8870_STB);
@@ -79,6 +83,7 @@ void interpretDTMF()
         {
           dtmfState = DTMF_CMD;
           sendMorse (OKMSG);
+          UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT);
         }
         else
         {
@@ -107,6 +112,11 @@ void interpretDTMF()
         else
         {
           sendMorse(NOKMSG);
+        }
+
+        if (TIMER_ELAPSED(adminModeExitTimer)
+        {
+          dtmfState = DTMF_IDLE;
         }
         break;
     }
