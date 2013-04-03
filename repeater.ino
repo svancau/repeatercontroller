@@ -87,9 +87,9 @@
 #define ROGER_K
 //#define ROGER_SMETER
 
-// BEEP Frequencies
-#define BEEP_FREQ 800
-#define MORSE_FREQ 650
+// BEEP Frequencies (in tens of Hertz)
+#define BEEP_FREQ 8000
+#define MORSE_FREQ 6500
 
 #define CPU_FREQ 16000000UL
 

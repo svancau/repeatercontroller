@@ -60,7 +60,7 @@ void setupTimer()
 // Do a beep for a known time
 void startBeep(unsigned int freq, unsigned long duration)
 {
-  ddsTuningWord = (4294967295UL / (CPU_FREQ/256)) * freq;
+  ddsTuningWord = ((4294967295UL / (CPU_FREQ/256)) * freq)/10;
   if (!beepOn)
   {
     // Arduino Leonardo
