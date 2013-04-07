@@ -52,7 +52,7 @@
 #endif
 
 // DELAYS (in ms)
-#define INACTIVE_CLOSE 10000
+#define INACTIVE_CLOSE 15000
 #define RELEASE_BEEP 200
 #define BEEP_LENGTH 100
 #define PTT_ON_DELAY 1000
@@ -76,7 +76,7 @@
 // BEHAVIOUR (set to 1 to enable, 0 to disable)
 #define USE_1750_OPEN 1
 #define USE_CTCSS_OPEN 1
-#define USE_CARRIER_OPEN 1
+#define USE_CARRIER_OPEN 0
 
 #define USE_CTCSS_BUSY 1
 #define USE_CARRIER_BUSY 1
