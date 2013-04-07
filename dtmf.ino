@@ -74,7 +74,7 @@ void interpretDTMF()
         if (dtmfString == DTMF_ENTER_CODE)
         {
           dtmfState = DTMF_AUTH;
-          sendMorse (AUTHMSG);
+          sendMorse (AUTHMSG, MORSE_FREQ);
         }
         break;
 
@@ -82,13 +82,13 @@ void interpretDTMF()
         if (dtmfString == DTMF_PASS)
         {
           dtmfState = DTMF_CMD;
-          sendMorse (OKMSG);
+          sendMorse (OKMSG, MORSE_FREQ);
           UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT);
         }
         else
         {
           dtmfState = DTMF_IDLE;
-          sendMorse(NOKMSG);
+          sendMorse(NOKMSG, MORSE_FREQ);
         }
         break;
 
@@ -98,23 +98,23 @@ void interpretDTMF()
           Configuration.onBeaconEnabled = false;
           Configuration.offBeaconEnabled = false;
           Configuration.repeaterEnabled = false;
-          sendMorse (OKMSG);
+          sendMorse (OKMSG, MORSE_FREQ);
         }
         else if (dtmfString == DTMF_ALL_ON)
         {
           Configuration.onBeaconEnabled = true;
           Configuration.offBeaconEnabled = true;
           Configuration.repeaterEnabled = true;
-          sendMorse (OKMSG);
+          sendMorse (OKMSG, MORSE_FREQ);
         }
 
         // Default case : generate error
         else
         {
-          sendMorse(NOKMSG);
+          sendMorse(NOKMSG, MORSE_FREQ);
         }
 
-        if (TIMER_ELAPSED(adminModeExitTimer)
+        if (TIMER_ELAPSED(adminModeExitTimer))
         {
           dtmfState = DTMF_IDLE;
         }

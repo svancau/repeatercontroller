@@ -20,6 +20,7 @@ ulong morseTimer;
 
 String morseStr; // Pointer to the morse string
 int strCounter; // Morse string index
+unsigned int morseFreq;
 
 // Constants
 // Thanks to KB8OJH
@@ -60,12 +61,13 @@ PROGMEM prog_uchar morse_ascii[] = {
 };
 
 // Send morse command
-void sendMorse (String message)
+void sendMorse (String message, unsigned int freq)
 {
   if (! morseActive) // If no morse is being sent do it otherwise drop
   {
     morseActive = true;
     morseStr = message;
+    morseFreq = freq;
     strCounter = 0;
     debugPrint ("Sending Morse message : "+message);
   }
@@ -128,7 +130,7 @@ void morseDash()
 {
   if (TIMER_ELAPSED(morseTimer))
   {
-    startBeep (MORSE_FREQ, MORSE_DASH);
+    startBeep (morseFreq, MORSE_DASH);
     UPDATE_TIMER(morseTimer,MORSE_DASH+MORSE_SYM_SPC);
   }
 }
@@ -137,7 +139,7 @@ void morseDot()
 {
   if (TIMER_ELAPSED(morseTimer))
   {
-    startBeep (MORSE_FREQ, MORSE_DOT);
+    startBeep (morseFreq, MORSE_DOT);
     UPDATE_TIMER(morseTimer,MORSE_DOT+MORSE_SYM_SPC);
   }
 }

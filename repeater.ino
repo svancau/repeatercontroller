@@ -200,6 +200,7 @@ bool morseActive = false; // currently sending morse
 bool firstIdentification = true; // First time the CPU
 
 String cwMessage; // Message to send when off
+unsigned int cwFreq;
 
 void loop()
 {
@@ -261,7 +262,7 @@ void setRepeaterState()
     if (TIMER_ELAPSED(closeTimer))
     {
       debugPrint ("Closing");
-      sendMorse (CLOSEMSG);
+      sendMorse (CLOSEMSG, MORSE_FREQ);
       State = REPEATER_CLOSING;
       UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after closing
     }
@@ -270,7 +271,7 @@ void setRepeaterState()
     if (TIMER_ELAPSED(timeoutTimer))
     {
        debugPrint ("Timeout");
-       sendMorse (TIMEOUTMSG);
+       sendMorse (TIMEOUTMSG, MORSE_FREQ);
        State = REPEATER_CLOSING;
        UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after timeout
     }
@@ -291,7 +292,7 @@ void setRepeaterState()
 
     if (!openSent) // Send ID only once
       {
-        sendMorse (OPENMSG);
+        sendMorse (OPENMSG, MORSE_FREQ);
         openSent = true;
       }
 
@@ -321,7 +322,7 @@ void setRepeaterState()
 
     if (!idSent) // Send ID only once
       {
-        sendMorse (cwMessage);
+        sendMorse (cwMessage, cwFreq);
         idSent = true;
       }
 
@@ -368,12 +369,12 @@ void rogerBeep()
 #endif
 
 #ifdef ROGER_K
-    sendMorse(KMSG);
+    sendMorse(KMSG, BEEP_FREQ);
 #endif
 
 #ifdef ROGER_SMETER
     // TODO: Attach a Smeter measurement to this
-    sendMorse("9");
+    sendMorse("9", BEEP_FREQ);
 #endif
   }
 }
@@ -387,12 +388,12 @@ void beaconTask()
     {
       if (firstIdentification) // Power on identification message
       {
-        sendClosedMorse (POWER_ON_MSG);
+        sendClosedMorse (POWER_ON_MSG, MORSE_FREQ);
         firstIdentification = false;
       }
       else
       {
-        sendClosedMorse (BEACONMSG);
+        sendClosedMorse (BEACONMSG, MORSE_FREQ);
       }
 
       debugPrint ("Beacon closed");
@@ -400,7 +401,7 @@ void beaconTask()
     }
     else if (State == REPEATER_OPEN && (!morseActive) && (!beepEnabled) && (!rxActive()) && Configuration.onBeaconEnabled)
     {
-      sendMorse (BEACONMSG);
+      sendMorse (BEACONMSG, MORSE_FREQ);
       debugPrint ("Beacon open");
       UPDATE_TIMER(beaconTimer, BEACON_DELAY); // Update timer here to ensure that it will be retransmitted when rx is not active
     }
@@ -459,11 +460,12 @@ bool rxActive()
 }
 
 // Send Morse when closed with PTT control
-void sendClosedMorse(String msg)
+void sendClosedMorse(String msg, unsigned int freq)
 {
   nextState = REPEATER_ID;
   State = REPEATER_PTTON;
   UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
   cwMessage = msg;
+  cwFreq = freq;
 }
 
