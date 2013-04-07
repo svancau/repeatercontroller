@@ -426,7 +426,7 @@ void updateIO()
   }
   else
   {
-    if (morseActive || beepOn || dtmfState != DTMF_IDLE) // If no beep, morse or DTMF is present
+    if (morseActive || beepOn || dtmfState != DTMF_IDLE || !rxActive()) // If no beep, morse or DTMF is present
     {
       // Use CW input
       digitalWrite(PIN_AMUX0, HIGH);
