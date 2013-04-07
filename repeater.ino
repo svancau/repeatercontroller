@@ -435,7 +435,7 @@ void updateIO()
     else
     {
       // Use Audio Input
-      digitalWrite(PIN_AMUX0, LOW);
+      digitalWrite(PIN_AMUX0, HIGH);
       digitalWrite(PIN_AMUX1, HIGH);
     }
   }
