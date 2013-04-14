@@ -202,6 +202,9 @@ bool firstIdentification = true; // First time the CPU
 String cwMessage; // Message to send when off
 unsigned int cwFreq;
 
+// Analog measurements
+int analogValues [6];
+
 void loop()
 {
   updateIO(); // Control PTT
@@ -209,6 +212,7 @@ void loop()
   morseGenerator(); // Morse generator task
   beaconTask();
   dtmfCaptureTask();
+  analogTask();
 #if (!USE_DEBUGMODE)
   wdt_reset(); // reset 8s watchdog
 #endif
