@@ -249,18 +249,19 @@ void setRepeaterState()
     if (rxActive())
     {
       UPDATE_TIMER(closeTimer, INACTIVE_CLOSE); // Repeater closing timer
-      prevRxActive = true;
     }
     else
     {
       UPDATE_TIMER(timeoutTimer, TIMEOUT_DELAY); // Update only when PTT is released
-      if (prevRxActive) // If the Squelch was previously opened
-      {
-        UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
-        beepEnabled = true;
-      }
-      prevRxActive = false;
     }
+
+    if (prevRxActive && !rxActive()) // If the Squelch was previously opened, falling edge
+    {
+      UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
+      beepEnabled = true;
+    }
+
+    prevRxActive = rxActive();
 
     // Set timeout after a known time    
     if (TIMER_ELAPSED(closeTimer))
