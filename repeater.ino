@@ -194,7 +194,7 @@ ulong pttDisableTimer; // End of morse to PTT off
 ulong carrier1750openTimer; // Carrier/1750 length before opening
 
 bool beepEnabled; // A Roger beep can be sent
-bool sqlOpen; // Current Squelch status
+bool prevRxActive; // Current Squelch status
 bool beepOn = false; // Beep is currently enabled
 bool morseActive = false; // currently sending morse
 bool firstIdentification = true; // First time the CPU
@@ -249,17 +249,17 @@ void setRepeaterState()
     if (rxActive())
     {
       UPDATE_TIMER(closeTimer, INACTIVE_CLOSE); // Repeater closing timer
-      sqlOpen = true;
+      prevRxActive = true;
     }
     else
     {
       UPDATE_TIMER(timeoutTimer, TIMEOUT_DELAY); // Update only when PTT is released
-      if (sqlOpen) // If the Squelch was previously opened
+      if (prevRxActive) // If the Squelch was previously opened
       {
         UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
         beepEnabled = true;
       }
-      sqlOpen = false;
+      prevRxActive = false;
     }
 
     // Set timeout after a known time    
