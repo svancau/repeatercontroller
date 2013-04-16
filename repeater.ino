@@ -54,6 +54,7 @@
 // DELAYS (in ms)
 #define INACTIVE_CLOSE 15000
 #define RELEASE_BEEP 200
+#define ROGER_BEEP_MINIMUM 2000
 #define BEEP_LENGTH 100
 #define PTT_ON_DELAY 1000
 #define PTT_OFF_DELAY 1000
@@ -187,6 +188,7 @@ State_t nextState = REPEATER_CLOSED; // State after PTT ON delay
 // Timers
 ulong closeTimer;
 ulong rogerBeepTimer;
+ulong rogerBeepMinumumTimer; // Minumum time before triggering the roger beep
 ulong beaconTimer;
 ulong timeoutTimer; // Cut too long keydowns
 ulong pttEnableTimer; // PTT enabled to morse
@@ -255,10 +257,18 @@ void setRepeaterState()
       UPDATE_TIMER(timeoutTimer, TIMEOUT_DELAY); // Update only when PTT is released
     }
 
+    if (!prevRxActive && rxActive()) // On squelch opening, rising edge
+    {
+      UPDATE_TIMER(rogerBeepMinumumTimer,ROGER_BEEP_MINIMUM); // Count Minimum time to trigger roger beep
+    }
+
     if (prevRxActive && !rxActive()) // If the Squelch was previously opened, falling edge
     {
-      UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
-      beepEnabled = true;
+      if (TIMER_ELAPSED(rogerBeepMinumumTimer))
+      {
+        UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
+        beepEnabled = true;
+      }
     }
 
     prevRxActive = rxActive();
