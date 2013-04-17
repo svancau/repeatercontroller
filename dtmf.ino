@@ -57,7 +57,7 @@ void dtmfCaptureTask()
      dtmfStrIndex = (dtmfStrIndex+1) % dtmfBufferSz;
      if (dtmfStrIndex == 0) // If we got 4 chars, interpret it
      {
-       debugPrint ("Analyzing DTMF code");
+       debugPrint ("Analyzing DTMF code " + dtmfString);
        interpretDTMF();
      }
      UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT);
