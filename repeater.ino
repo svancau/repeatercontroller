@@ -264,9 +264,9 @@ void setRepeaterState()
 
     if (prevRxActive && !rxActive()) // If the Squelch was previously opened, falling edge
     {
-      if (TIMER_ELAPSED(rogerBeepMinumumTimer))
+      UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
+      if (TIMER_ELAPSED(rogerBeepMinumumTimer)) // Enable roger beep after some time only
       {
-        UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
         beepEnabled = true;
       }
     }
