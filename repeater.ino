@@ -196,6 +196,7 @@ ulong pttDisableTimer; // End of morse to PTT off
 ulong carrier1750openTimer; // Carrier/1750 length before opening
 
 bool beepEnabled; // A Roger beep can be sent
+bool timeOutEnabled; // TimeOut is enabled
 bool prevRxActive; // Current Squelch status
 bool beepOn = false; // Beep is currently enabled
 bool morseActive = false; // currently sending morse
@@ -252,10 +253,12 @@ void setRepeaterState()
     {
       UPDATE_TIMER(closeTimer, INACTIVE_CLOSE); // Repeater closing timer
       UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
+      timeOutEnabled = true;
     }
     else
     {
       UPDATE_TIMER(timeoutTimer, TIMEOUT_DELAY); // Update only when PTT is released
+      timeOutEnabled = false;
     }
 
     if (!prevRxActive && rxActive()) // On squelch opening, rising edge
@@ -283,12 +286,13 @@ void setRepeaterState()
     }
 
     // If the PTT is hold for too long, close the repeater
-    if (TIMER_ELAPSED(timeoutTimer))
+    if (timeOutEnabled && TIMER_ELAPSED(timeoutTimer))
     {
        debugPrint ("Timeout");
        sendMorse (TIMEOUTMSG, MORSE_FREQ);
        State = REPEATER_CLOSING;
        UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after timeout
+       timeOutEnabled = false;
     }
 
     // Roger Beep
