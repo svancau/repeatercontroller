@@ -106,9 +106,11 @@ void updateBeep()
 ISR(TIMER3_OVF_vect)
 {
   unsigned char index; // Sample Index
+  unsigned char value; // Sample Value
   ddsPhaseAccu += ddsTuningWord;
   index = ddsPhaseAccu >> 24;
-  OCR3A = pgm_read_byte_near(sine + index);
+  value = pgm_read_byte_near(sine + index) >> 1; // Value of the morse
+  OCR3A = value;
 }
 #endif
 
@@ -118,9 +120,11 @@ ISR(TIMER3_OVF_vect)
 ISR(TIMER2_OVF_vect)
 {
   unsigned char index; // Sample Index
+  unsigned char value; // Sample Value
   ddsPhaseAccu += ddsTuningWord;
   index = ddsPhaseAccu >> 24;
-  OCR2A = pgm_read_byte_near(sine + index);
+  value = pgm_read_byte_near(sine + index) >> 1; // Value of the morse
+  OCR2A = value;
 }
 #endif
 
