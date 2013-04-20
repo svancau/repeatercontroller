@@ -94,6 +94,10 @@
 
 #define CPU_FREQ 16000000UL
 
+// Define Test Pin (test millis() reference on PIN 12 500 Hz signal)
+//#define TEST_ENABLE
+#define TEST_PIN 12
+
 // Messages
 #define POWER_ON_MSG "ON4SEB QRV"
 #define OPENMSG "ON4SEB"
@@ -216,6 +220,9 @@ void loop()
   beaconTask();
   dtmfCaptureTask();
   analogTask();
+#if defined(TEST_ENABLE)
+  testTask();
+#endif
 #if (!USE_DEBUGMODE)
   wdt_reset(); // reset 8s watchdog
 #endif
@@ -487,4 +494,12 @@ void sendClosedMorse(String msg, unsigned int freq)
   cwMessage = msg;
   cwFreq = freq;
 }
+
+#if defined(TEST_ENABLE)
+void testTask()
+{
+  pinMode (TEST_PIN, OUTPUT);
+  digitalWrite (TEST_PIN, millis() & 1);
+}
+#endif
 
