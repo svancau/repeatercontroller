@@ -22,7 +22,10 @@ PROGMEM prog_uchar dtmf_table[16] =
  '8','9','0','*','#','A','B','C'};
 
 ulong adminModeExitTimer;
+ulong bufferClearTimer; // Clear buffer after some time
+
 #define ADMIN_TIMEOUT 30000u
+#define BUFFER_CLEAR 2000u
 
 #define dtmfBufferSz 4
 
@@ -62,7 +65,16 @@ void dtmfCaptureTask()
        interpretDTMF();
      }
      UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT);
+     UPDATE_TIMER(bufferClearTimer, BUFFER_CLEAR);
    }
+
+  // After some time, clear the input buffer
+  if (dtmfStrIndex != 0 && TIMER_ELAPSED(bufferClearTimer))
+  {
+    debugPrint ("Clear DTMF buffer");
+    dtmfString = "    ";
+    dtmfStrIndex = 0;
+  }
 
   prevStrobe = digitalRead(PIN_8870_STB);
 }
