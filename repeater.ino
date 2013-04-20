@@ -438,7 +438,7 @@ void beaconTask()
 void updateIO()
 {
   // Set the PTT control depending on repeater state
-  if (State != REPEATER_CLOSED)
+  if (State != REPEATER_CLOSED || morseActive)
     digitalWrite(PIN_PTT, HIGH);
   else
     digitalWrite(PIN_PTT, LOW);
