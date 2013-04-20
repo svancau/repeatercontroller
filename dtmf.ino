@@ -89,6 +89,10 @@ void interpretDTMF()
           dtmfState = DTMF_AUTH;
           sendMorse (AUTHMSG, MORSE_FREQ);
         }
+        else
+        {
+          sendMorse (NOKMSG, MORSE_FREQ);
+        }
         break;
 
       case DTMF_AUTH:
