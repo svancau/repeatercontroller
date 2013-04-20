@@ -39,7 +39,7 @@ ulong adminModeExitTimer;
 
 
 
-String dtmfString;
+String dtmfString = "    ";
 bool prevStrobe = false;
 uchar dtmfStrIndex;
 
