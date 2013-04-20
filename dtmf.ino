@@ -32,6 +32,7 @@ ulong adminModeExitTimer;
 // DTMF Commands
 #define DTMF_ALL_OFF "0000"
 #define DTMF_ALL_ON "1000"
+#define CMD_DTMF_EXIT "####"
 
 #define AUTHMSG "AUTH"
 #define OKMSG "OK"
@@ -106,6 +107,11 @@ void interpretDTMF()
           Configuration.offBeaconEnabled = true;
           Configuration.repeaterEnabled = true;
           sendMorse (OKMSG, MORSE_FREQ);
+        }
+        else if (dtmfString == CMD_DTMF_EXIT)
+        {
+          sendMorse (OKMSG, MORSE_FREQ);
+          dtmfState = DTMF_IDLE;
         }
 
         // Default case : generate error
