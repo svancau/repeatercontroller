@@ -32,19 +32,42 @@ ulong bufferClearTimer; // Clear buffer after some time
 #define DTMF_ENTER_CODE "A52D"
 #define DTMF_PASS "1234"
 
-// DTMF Commands
-#define CMD_DTMF_ALL_OFF "0000"
-#define CMD_DTMF_ALL_ON "1000"
-#define CMD_DTMF_EXIT "####"
-
-#define AUTHMSG "AUTH"
+// Messages
+#define AUTHMSG "PASS"
 #define OKMSG "OK"
-#define NOKMSG "KO"
+#define NOKMSG "ERR"
 #define EXITMSG "EXIT"
+#define PERMMSG "PERM"
+
+// Command dispatcher return values
+#define RET_CMD_OK 0
+#define RET_CMD_FAIL 1
+#define RET_CMD_PERM 2
+#define RET_CMD_NOTEXIST 3
 
 String dtmfString = "    ";
 bool prevStrobe = false;
 uchar dtmfStrIndex;
+
+// Structure containing all the possible commands
+typedef struct
+{
+  String commandStr; // 4 Digits command string
+  bool priviledged; // Checks for authentication for this function
+  void (*runFunction)(void); // Call function when OK
+}
+commandEntry_t;
+
+// Do not forget to update this constant when adding entries to commandList
+#define COMMAND_COUNT 3
+
+commandEntry_t commandList[COMMAND_COUNT]
+  // CODE   PERMISSION REQUIRED   FUNCTION NAME
+= {
+   {"0000", true,                 &adminDisableAll},
+   {"1000", true,                 &adminEnableAll},
+   {"####", true,                 &adminExitMode},
+  };
 
 void dtmfCaptureTask()
 {
@@ -78,30 +101,31 @@ void dtmfCaptureTask()
   // Exit Admin mode some time after the last command
   if (adminState != ADMIN_IDLE && TIMER_ELAPSED(adminModeExitTimer))
   {
-    exitAdminMode();
+    adminExitMode();
   }
 
   prevStrobe = digitalRead(PIN_8870_STB);
 }
 
+// Interpret function and administration FSM
 void interpretDTMF()
 {
     UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT); // Update Admin mode exit timer every time a new word is received
     switch (adminState)
     {
-      case ADMIN_IDLE:
+      case ADMIN_IDLE: // Enter privileged mode
         if (dtmfString == DTMF_ENTER_CODE)
         {
           adminState = ADMIN_AUTH;
           sendMorse (AUTHMSG, MORSE_FREQ);
         }
-        else
+        else // Use unprivileged commands
         {
-          sendMorse (NOKMSG, MORSE_FREQ);
+          getCommands();
         }
         break;
 
-      case ADMIN_AUTH:
+      case ADMIN_AUTH: // Get credentials
         if (dtmfString == DTMF_PASS)
         {
           adminState = ADMIN_CMD;
@@ -114,38 +138,84 @@ void interpretDTMF()
         }
         break;
 
-      case ADMIN_CMD:
-        if (dtmfString == CMD_DTMF_ALL_OFF)
-        {
-          Configuration.onBeaconEnabled = false;
-          Configuration.offBeaconEnabled = false;
-          Configuration.repeaterEnabled = false;
-          sendMorse (OKMSG, MORSE_FREQ);
-        }
-        else if (dtmfString == CMD_DTMF_ALL_ON)
-        {
-          Configuration.onBeaconEnabled = true;
-          Configuration.offBeaconEnabled = true;
-          Configuration.repeaterEnabled = true;
-          sendMorse (OKMSG, MORSE_FREQ);
-        }
-        else if (dtmfString == CMD_DTMF_EXIT)
-        {
-          exitAdminMode();
-        }
-
-        // Default case : generate error
-        else
-        {
-          sendMorse(NOKMSG, MORSE_FREQ);
-        }
-
+      case ADMIN_CMD: // Privileged mode
+        getCommands();
         break;
     }
 }
 
+// Get commands from command list
+void getCommands()
+{
+  char retVal = RET_CMD_NOTEXIST;
+  int i;
+  for (i = 0; i < COMMAND_COUNT; i++)
+  {
+    if (commandList[i].commandStr == dtmfString) // Check for input command
+    {
+      debugPrint ("Found match for "+dtmfString);
+      if (commandList[i].priviledged)
+      {
+        if (adminState == ADMIN_CMD) // Check for permissions
+        { // Return OK, run function, function need to send whatever it wants in morse
+          debugPrint ("Permission granted for "+dtmfString);
+          retVal = RET_CMD_OK;
+        }
+        else // Permission denied, go to admin mode first
+        {
+          debugPrint ("Permission denied for "+dtmfString);
+          sendMorse (PERMMSG, MORSE_FREQ);
+          retVal = RET_CMD_PERM;
+        }
+      }
+      else // No permission required
+      { // Return OK, run function, function need to send whatever it wants in morse
+          debugPrint ("No permission required for "+dtmfString);
+          retVal = RET_CMD_OK;
+      }
+      break;
+    }
+  }
+
+  if (retVal == RET_CMD_OK) // Action for OK commands
+  {
+    if (commandList[i].runFunction)
+      commandList[i].runFunction();
+  }
+
+  if (retVal == RET_CMD_NOTEXIST) // Action for Not existing commands
+  {
+    debugPrint ("No match found for "+dtmfString);
+    sendMorse (NOKMSG, MORSE_FREQ);
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Functions to be executed upon DTMF command
+// prototype is void function (void);
+// Each function has to send the morse feedback itself
+// DO NOT INLINE
+
+// Enable all (Beacon when opened, close, repeater itself)
+void adminEnableAll()
+{
+  Configuration.onBeaconEnabled = true;
+  Configuration.offBeaconEnabled = true;
+  Configuration.repeaterEnabled = true;
+  sendMorse (OKMSG, MORSE_FREQ);
+}
+
+// Disable all (Beacon when opened, close, repeater itself)
+void adminDisableAll()
+{
+  Configuration.onBeaconEnabled = false;
+  Configuration.offBeaconEnabled = false;
+  Configuration.repeaterEnabled = false;
+  sendMorse (OKMSG, MORSE_FREQ);
+}
+
 // Action to do on admin mode exit
-void exitAdminMode ()
+void adminExitMode()
 {
   sendMorse ("EXIT", MORSE_FREQ);
   adminState = ADMIN_IDLE;
