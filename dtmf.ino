@@ -76,7 +76,7 @@ void dtmfCaptureTask()
   }
 
   // Exit Admin mode some time after the last command
-  if (dtmfState != DTMF_IDLE && TIMER_ELAPSED(adminModeExitTimer))
+  if (adminState != ADMIN_IDLE && TIMER_ELAPSED(adminModeExitTimer))
   {
     exitAdminMode();
   }
@@ -87,12 +87,12 @@ void dtmfCaptureTask()
 void interpretDTMF()
 {
     UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT); // Update Admin mode exit timer every time a new word is received
-    switch (dtmfState)
+    switch (adminState)
     {
-      case DTMF_IDLE:
+      case ADMIN_IDLE:
         if (dtmfString == DTMF_ENTER_CODE)
         {
-          dtmfState = DTMF_AUTH;
+          adminState = ADMIN_AUTH;
           sendMorse (AUTHMSG, MORSE_FREQ);
         }
         else
@@ -101,20 +101,20 @@ void interpretDTMF()
         }
         break;
 
-      case DTMF_AUTH:
+      case ADMIN_AUTH:
         if (dtmfString == DTMF_PASS)
         {
-          dtmfState = DTMF_CMD;
+          adminState = ADMIN_CMD;
           sendMorse (OKMSG, MORSE_FREQ);
         }
         else
         {
-          dtmfState = DTMF_IDLE;
+          adminState = ADMIN_IDLE;
           sendMorse(NOKMSG, MORSE_FREQ);
         }
         break;
 
-      case DTMF_CMD:
+      case ADMIN_CMD:
         if (dtmfString == CMD_DTMF_ALL_OFF)
         {
           Configuration.onBeaconEnabled = false;
@@ -148,6 +148,6 @@ void interpretDTMF()
 void exitAdminMode ()
 {
   sendMorse ("EXIT", MORSE_FREQ);
-  dtmfState = DTMF_IDLE;
+  adminState = ADMIN_IDLE;
 }
 

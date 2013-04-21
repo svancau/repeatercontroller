@@ -117,8 +117,8 @@ enum State_t {
   REPEATER_PTTOFF // Wait after closing
 };
 
-enum dtmfState_t {DTMF_IDLE, DTMF_AUTH, DTMF_CMD};
-dtmfState_t dtmfState = DTMF_IDLE;
+enum adminState_t {ADMIN_IDLE, ADMIN_AUTH, ADMIN_CMD};
+adminState_t adminState = ADMIN_IDLE;
 
 // Type definitions
 typedef unsigned char uchar;
@@ -452,7 +452,7 @@ void updateIO()
   }
   else
   {
-    if (morseActive || beepOn || dtmfState != DTMF_IDLE || !rxActive()) // If no beep, morse or DTMF is present
+    if (morseActive || beepOn || adminState != ADMIN_IDLE || !rxActive()) // If no beep, morse or DTMF is present
     {
       // Use CW input
       digitalWrite(PIN_AMUX0, HIGH);
