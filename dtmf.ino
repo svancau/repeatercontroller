@@ -134,7 +134,7 @@ void interpretDTMF()
         else
         {
           adminState = ADMIN_IDLE;
-          sendMorse(NOKMSG, MORSE_FREQ);
+          sendMorse(PERMMSG, MORSE_FREQ);
         }
         break;
 
