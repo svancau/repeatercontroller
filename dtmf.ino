@@ -25,7 +25,7 @@ ulong adminModeExitTimer;
 ulong bufferClearTimer; // Clear buffer after some time
 
 #define ADMIN_TIMEOUT 30000u
-#define BUFFER_CLEAR 2000u
+#define BUFFER_CLEAR 1500u
 
 #define dtmfBufferSz 4
 
