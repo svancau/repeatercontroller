@@ -201,6 +201,7 @@ ulong pttDisableTimer; // End of morse to PTT off
 ulong carrier1750openTimer; // Carrier/1750 length before opening
 
 bool beepEnabled; // A Roger beep can be sent
+bool beepUpdateTimer = true; // Update the minimum keydown counter for roger beep
 bool timeOutEnabled; // TimeOut is enabled
 bool prevRxActive; // Current Squelch status
 bool beepOn = false; // Beep is currently enabled
@@ -275,11 +276,13 @@ void setRepeaterState()
 
     if (!prevRxActive && rxActive()) // On squelch opening, rising edge
     {
-      UPDATE_TIMER(rogerBeepMinumumTimer,ROGER_BEEP_MINIMUM); // Count Minimum time to trigger roger beep
+      if (beepUpdateTimer)
+        UPDATE_TIMER(rogerBeepMinumumTimer,ROGER_BEEP_MINIMUM); // Count Minimum time to trigger roger beep
     }
 
     if (prevRxActive && !rxActive()) // If the Squelch was previously opened, falling edge
     {
+      beepUpdateTimer = false; // Do not reload roger beep timer on a falling edge (flutter protection)
       if (TIMER_ELAPSED(rogerBeepMinumumTimer)) // Enable roger beep after some time only
       {
         beepEnabled = true;
@@ -313,6 +316,7 @@ void setRepeaterState()
     {
       debugPrint ("Beep");
       beepEnabled = false;
+      beepUpdateTimer = true;
       rogerBeep();
     }
 
