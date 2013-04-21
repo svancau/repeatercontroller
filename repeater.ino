@@ -312,12 +312,15 @@ void setRepeaterState()
     }
 
     // Roger Beep
-    if (beepEnabled && TIMER_ELAPSED(rogerBeepTimer)) // PTT Release time to roger beep
+    if (TIMER_ELAPSED(rogerBeepTimer)) // PTT Release time to roger beep
     {
-      debugPrint ("Beep");
-      beepEnabled = false;
       beepUpdateTimer = true;
-      rogerBeep();
+      if (beepEnabled)
+      {
+        debugPrint ("Beep");
+        beepEnabled = false;
+        rogerBeep();
+      }
     }
 
     break;
