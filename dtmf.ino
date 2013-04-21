@@ -54,19 +54,20 @@ typedef struct
 {
   String commandStr; // 4 Digits command string
   bool priviledged; // Checks for authentication for this function
-  void (*runFunction)(void); // Call function when OK
+  void (*runFunction)(int); // Call function when OK
+  int param0; // First parameter
 }
 commandEntry_t;
 
 // Do not forget to update this constant when adding entries to commandList
 #define COMMAND_COUNT 3
 
-commandEntry_t commandList[COMMAND_COUNT]
-  // CODE   PERMISSION REQUIRED   FUNCTION NAME
-= {
-   {"0000", true,                 &adminDisableAll},
-   {"1000", true,                 &adminEnableAll},
-   {"####", true,                 &adminExitMode},
+commandEntry_t commandList[COMMAND_COUNT] =
+  // CODE   PERMISSION REQUIRED   FUNCTION NAME       PARAMETER
+  {
+    {"0000", true,                 &adminDisableAll,  0        },
+    {"1000", true,                 &adminEnableAll,   0        },
+    {"####", true,                 &adminExitMode,    0        },
   };
 
 void dtmfCaptureTask()
@@ -101,7 +102,7 @@ void dtmfCaptureTask()
   // Exit Admin mode some time after the last command
   if (adminState != ADMIN_IDLE && TIMER_ELAPSED(adminModeExitTimer))
   {
-    adminExitMode();
+    adminExitMode(0);
   }
 
   prevStrobe = digitalRead(PIN_8870_STB);
@@ -179,8 +180,8 @@ void getCommands()
 
   if (retVal == RET_CMD_OK) // Action for OK commands
   {
-    if (commandList[i].runFunction)
-      commandList[i].runFunction();
+    if (commandList[i].runFunction) // If not NULL, run actual function
+      commandList[i].runFunction(commandList[i].param0);
   }
 
   if (retVal == RET_CMD_NOTEXIST) // Action for Not existing commands
@@ -192,12 +193,12 @@ void getCommands()
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Functions to be executed upon DTMF command
-// prototype is void function (void);
+// prototype is void function (int);
 // Each function has to send the morse feedback itself
 // DO NOT INLINE
 
 // Enable all (Beacon when opened, close, repeater itself)
-void adminEnableAll()
+void adminEnableAll(int param0)
 {
   Configuration.onBeaconEnabled = true;
   Configuration.offBeaconEnabled = true;
@@ -206,7 +207,7 @@ void adminEnableAll()
 }
 
 // Disable all (Beacon when opened, close, repeater itself)
-void adminDisableAll()
+void adminDisableAll(int param0)
 {
   Configuration.onBeaconEnabled = false;
   Configuration.offBeaconEnabled = false;
@@ -215,9 +216,10 @@ void adminDisableAll()
 }
 
 // Action to do on admin mode exit
-void adminExitMode()
+void adminExitMode(int param0)
 {
   sendMorse ("EXIT", MORSE_FREQ);
   adminState = ADMIN_IDLE;
 }
 
+// Get analogValue
