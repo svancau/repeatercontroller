@@ -64,6 +64,7 @@ commandEntry_t commandList[] =
   {
     {"0000", true,                 &adminDisableAll,        0        },
     {"1000", true,                 &adminEnableAll,         0        },
+    {"2000", true,                 &adminColdReset,         0        },
     {"####", true,                 &adminExitMode,          0        },
     {"A000", false,                &adminGetAnalogValue,    0        },
     {"A001", false,                &adminGetAnalogValue,    1        },
@@ -232,3 +233,13 @@ void adminGetAnalogValue(int param0)
 { // Array index will always be in range
   sendMorse ("OK "+String(analogValues[param0]), MORSE_FREQ);
 }
+
+// Do a cold reset
+void adminColdReset(int param0)
+{
+  volatile int i; // Use this variable to ensure that compiler will never optimize the loop away
+  wdt_reset();
+  wdt_enable(WDTO_250MS);
+  while(1) { i++; }
+}
+
