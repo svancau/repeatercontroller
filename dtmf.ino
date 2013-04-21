@@ -24,7 +24,7 @@ PROGMEM prog_uchar dtmf_table[16] =
 ulong adminModeExitTimer;
 ulong bufferClearTimer; // Clear buffer after some time
 
-#define ADMIN_TIMEOUT 30000u
+#define ADMIN_TIMEOUT 10000u
 #define BUFFER_CLEAR 1500u
 
 #define dtmfBufferSz 4
@@ -128,7 +128,8 @@ void interpretDTMF()
         }
         else // Use unprivileged commands
         {
-          getCommands();
+          if (ECHOLINK_MODE && State != REPEATER_OPEN) // Do not interpret commands when repeater is opened
+            getCommands();
         }
         break;
 

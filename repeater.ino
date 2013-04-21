@@ -84,6 +84,9 @@
 #define USE_OPEN_ROGER_BEEP 0
 
 #define ADMIN_MODE_WHEN_OPENED 1
+// Echolink mode enabled the repeater to ignore DTMF codes when opened except ADMIN
+#define ECHOLINK_MODE 1
+
 // BEHAVIOUR of the roger beep define only _ONE_ of those or none
 //#define ROGER_TONE
 #define ROGER_K
