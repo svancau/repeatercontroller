@@ -225,7 +225,11 @@ void loop()
 #endif
 #if (!USE_DEBUGMODE)
   wdt_reset(); // reset 8s watchdog
+#else
+  if (millis() % 60000 == 0)
+    debugPrint ("Timestamp");
 #endif
+
 }
 
 void setRepeaterState()
