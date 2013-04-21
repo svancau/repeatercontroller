@@ -479,7 +479,8 @@ bool openRequest()
   return (((USE_1750_OPEN && digitalRead(PIN_1750))
     || (USE_CTCSS_OPEN && digitalRead(PIN_CTCSS))
     || (USE_CARRIER_OPEN && digitalRead(PIN_CARRIER)))
-    && Configuration.repeaterEnabled);
+    && Configuration.repeaterEnabled
+    && adminState == ADMIN_IDLE); // Do not open repeater when in admin mode
 }
 
 // Check if RX channel is active
