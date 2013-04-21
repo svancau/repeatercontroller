@@ -83,6 +83,7 @@
 #define USE_CARRIER_BUSY 1
 #define USE_OPEN_ROGER_BEEP 0
 
+#define ADMIN_MODE_WHEN_OPENED 1
 // BEHAVIOUR of the roger beep define only _ONE_ of those or none
 //#define ROGER_TONE
 #define ROGER_K
@@ -288,7 +289,8 @@ void setRepeaterState()
     prevRxActive = rxActive();
 
     // Set timeout after a known time    
-    if (TIMER_ELAPSED(closeTimer))
+    if (TIMER_ELAPSED(closeTimer)
+    || (ADMIN_MODE_WHEN_OPENED && adminState == ADMIN_AUTH)) // Close repeater when entering in admin mode
     {
       debugPrint ("Closing");
       sendMorse (CLOSEMSG, MORSE_FREQ);
