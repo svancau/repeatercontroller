@@ -60,14 +60,20 @@ typedef struct
 commandEntry_t;
 
 // Do not forget to update this constant when adding entries to commandList
-#define COMMAND_COUNT 3
+#define COMMAND_COUNT 9
 
 commandEntry_t commandList[COMMAND_COUNT] =
-  // CODE   PERMISSION REQUIRED   FUNCTION NAME       PARAMETER
+  // CODE   PERMISSION REQUIRED   FUNCTION NAME             PARAMETER
   {
-    {"0000", true,                 &adminDisableAll,  0        },
-    {"1000", true,                 &adminEnableAll,   0        },
-    {"####", true,                 &adminExitMode,    0        },
+    {"0000", true,                 &adminDisableAll,        0        },
+    {"1000", true,                 &adminEnableAll,         0        },
+    {"####", true,                 &adminExitMode,          0        },
+    {"A000", false,                &adminGetAnalogValue,    0        },
+    {"A001", false,                &adminGetAnalogValue,    1        },
+    {"A002", false,                &adminGetAnalogValue,    2        },
+    {"A003", false,                &adminGetAnalogValue,    3        },
+    {"A004", false,                &adminGetAnalogValue,    4        },
+    {"A005", false,                &adminGetAnalogValue,    5        },
   };
 
 void dtmfCaptureTask()
@@ -223,3 +229,7 @@ void adminExitMode(int param0)
 }
 
 // Get analogValue
+void adminGetAnalogValue(int param0)
+{ // Array index will always be in range
+  sendMorse ("OK "+String(analogValues[param0]), MORSE_FREQ);
+}
