@@ -75,11 +75,18 @@ void dtmfCaptureTask()
     dtmfStrIndex = 0;
   }
 
+  // Exit Admin mode some time after the last command
+  if (dtmfState != DTMF_IDLE && TIMER_ELAPSED(adminModeExitTimer))
+  {
+    exitAdminMode();
+  }
+
   prevStrobe = digitalRead(PIN_8870_STB);
 }
 
 void interpretDTMF()
 {
+    UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT); // Update Admin mode exit timer every time a new word is received
     switch (dtmfState)
     {
       case DTMF_IDLE:
@@ -99,7 +106,6 @@ void interpretDTMF()
         {
           dtmfState = DTMF_CMD;
           sendMorse (OKMSG, MORSE_FREQ);
-          UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT);
         }
         else
         {
@@ -134,10 +140,6 @@ void interpretDTMF()
           sendMorse(NOKMSG, MORSE_FREQ);
         }
 
-        if (TIMER_ELAPSED(adminModeExitTimer))
-        {
-          dtmfState = DTMF_IDLE;
-        }
         break;
     }
 }
