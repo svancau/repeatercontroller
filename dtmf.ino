@@ -202,7 +202,7 @@ void adminEnableAll()
   Configuration.onBeaconEnabled = true;
   Configuration.offBeaconEnabled = true;
   Configuration.repeaterEnabled = true;
-  sendMorse (OKMSG, MORSE_FREQ);
+  sendMorse ("OK QRV", MORSE_FREQ);
 }
 
 // Disable all (Beacon when opened, close, repeater itself)
@@ -211,7 +211,7 @@ void adminDisableAll()
   Configuration.onBeaconEnabled = false;
   Configuration.offBeaconEnabled = false;
   Configuration.repeaterEnabled = false;
-  sendMorse (OKMSG, MORSE_FREQ);
+  sendMorse ("OK QRT", MORSE_FREQ);
 }
 
 // Action to do on admin mode exit
