@@ -40,8 +40,7 @@ ulong bufferClearTimer; // Clear buffer after some time
 #define AUTHMSG "AUTH"
 #define OKMSG "OK"
 #define NOKMSG "KO"
-
-
+#define EXITMSG "EXIT"
 
 String dtmfString = "    ";
 bool prevStrobe = false;
@@ -126,8 +125,7 @@ void interpretDTMF()
         }
         else if (dtmfString == CMD_DTMF_EXIT)
         {
-          sendMorse (OKMSG, MORSE_FREQ);
-          dtmfState = DTMF_IDLE;
+          exitAdminMode();
         }
 
         // Default case : generate error
@@ -143,3 +141,11 @@ void interpretDTMF()
         break;
     }
 }
+
+// Action to do on admin mode exit
+void exitAdminMode ()
+{
+  sendMorse ("EXIT", MORSE_FREQ);
+  dtmfState = DTMF_IDLE;
+}
+
