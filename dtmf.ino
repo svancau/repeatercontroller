@@ -59,10 +59,7 @@ typedef struct
 }
 commandEntry_t;
 
-// Do not forget to update this constant when adding entries to commandList
-#define COMMAND_COUNT 9
-
-commandEntry_t commandList[COMMAND_COUNT] =
+commandEntry_t commandList[] =
   // CODE   PERMISSION REQUIRED   FUNCTION NAME             PARAMETER
   {
     {"0000", true,                 &adminDisableAll,        0        },
@@ -75,6 +72,8 @@ commandEntry_t commandList[COMMAND_COUNT] =
     {"A004", false,                &adminGetAnalogValue,    4        },
     {"A005", false,                &adminGetAnalogValue,    5        },
   };
+
+#define COMMAND_COUNT (int)(sizeof(commandList)/sizeof(commandList[0]))
 
 void dtmfCaptureTask()
 {
