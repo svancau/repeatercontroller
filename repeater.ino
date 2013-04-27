@@ -347,6 +347,10 @@ void setRepeaterState()
           rogerBeep(); // Send a roger beep once opened
       }
 
+      UpdateTimer(timeoutTimer, TIMEOUT_DELAY); // Update timer when opening
+      UpdateTimer(closeTimer, INACTIVE_CLOSE); // Repeater closing timer
+      UpdateTimer(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
+
     break;
 
     // --------------- REPEATER SENDING MORSE WHILE OPENED -------
