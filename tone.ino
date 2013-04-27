@@ -31,7 +31,7 @@ ulong ddsTonePhaseAccu; // DDS Phase accumulator
 ulong ddsCTCSSTuningWord; // DDS tuning word
 ulong ddsCTCSSPhaseAccu; // DDS Phase accumulator
 
-bool ctcssEnabled; // CTCSS is enabled
+bool ctcssEnabled = false; // CTCSS is enabled
 
 // Sine wave table
 PROGMEM prog_uchar sine[] = {
@@ -69,8 +69,10 @@ void setupTimer()
 
 void enableCTCSS(bool value)
 {
+#if (TX_CTCSS_ENABLE)
   ctcssEnabled=value;
   ddsCTCSSTuningWord = ((4294967295UL / (CPU_FREQ/256)) * CTCSS_FREQ)/10;
+#endif
 }
 
 // Do a beep for a known time
@@ -132,14 +134,14 @@ inline unsigned char ddsTone()
     index = ddsTonePhaseAccu >> 24;
     value += pgm_read_byte_near(sine + index) >> 1;
   }
-
+#if (TX_CTCSS_ENABLE)
   if (ctcssEnabled) // CTCSS generation
   {
     ddsCTCSSPhaseAccu += ddsCTCSSTuningWord;
     index = ddsCTCSSPhaseAccu >> 24;
     value += pgm_read_byte_near(sine + index) >> CTCSS_ATT;
   }
-
+#endif
   return value; // Value of the PWM output
 }
 

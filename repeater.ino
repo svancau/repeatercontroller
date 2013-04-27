@@ -97,6 +97,8 @@
 // BEEP Frequencies (in tens of Hertz)
 #define BEEP_FREQ 8000
 #define MORSE_FREQ 6500
+// CTCSS Value (in tens of Hertz, please refer to CTCSS table http://en.wikipedia.org/wiki/Continuous_Tone-Coded_Squelch_System)
+#define TX_CTCSS_ENABLE 1
 #define CTCSS_FREQ 1072
 
 #define CPU_FREQ 16000000UL
