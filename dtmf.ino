@@ -16,13 +16,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "timer.h"
+
 // MT8870 DTMF table
 PROGMEM prog_uchar dtmf_table[16] =
 {'D','1','2','3','4','5','6','7',
  '8','9','0','*','#','A','B','C'};
 
-ulong adminModeExitTimer;
-ulong bufferClearTimer; // Clear buffer after some time
+timer_t adminModeExitTimer;
+timer_t bufferClearTimer; // Clear buffer after some time
 
 #define ADMIN_TIMEOUT 10000u
 #define BUFFER_CLEAR 1500u
@@ -93,12 +95,12 @@ void dtmfCaptureTask()
        debugPrint ("Analyzing DTMF code " + dtmfString);
        interpretDTMF();
      }
-     UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT);
-     UPDATE_TIMER(bufferClearTimer, BUFFER_CLEAR);
+     UpdateTimer(adminModeExitTimer, ADMIN_TIMEOUT);
+     UpdateTimer(bufferClearTimer, BUFFER_CLEAR);
    }
 
   // After some time, clear the input buffer
-  if (dtmfStrIndex != 0 && TIMER_ELAPSED(bufferClearTimer))
+  if (dtmfStrIndex != 0 && TimerElapsed(bufferClearTimer))
   {
     debugPrint ("Clear DTMF buffer");
     dtmfString = "    ";
@@ -106,7 +108,7 @@ void dtmfCaptureTask()
   }
 
   // Exit Admin mode some time after the last command
-  if (adminState != ADMIN_IDLE && TIMER_ELAPSED(adminModeExitTimer))
+  if (adminState != ADMIN_IDLE && TimerElapsed(adminModeExitTimer))
   {
     adminExitMode(0);
   }
@@ -117,7 +119,7 @@ void dtmfCaptureTask()
 // Interpret function and administration FSM
 void interpretDTMF()
 {
-    UPDATE_TIMER(adminModeExitTimer, ADMIN_TIMEOUT); // Update Admin mode exit timer every time a new word is received
+    UpdateTimer(adminModeExitTimer, ADMIN_TIMEOUT); // Update Admin mode exit timer every time a new word is received
     switch (adminState)
     {
       case ADMIN_IDLE: // Enter privileged mode

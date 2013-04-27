@@ -20,6 +20,7 @@
 #include <avr/interrupt.h>
 #include <avr/io.h>
 #include <avr/progmem.h>
+#include "timer.h"
 
 ////////////////////////////////////////////
 // Static Repeater Configuration
@@ -138,10 +139,6 @@ struct Config_t
 
 struct Config_t Configuration;
 
-// Macros
-#define UPDATE_TIMER(tname,tval) tname = millis() + tval
-#define TIMER_ELAPSED(tname) ((long)(millis() - tname) >= 0)
-
 /////////////////////////////////////////////
 // Setup phase
 /////////////////////////////////////////////
@@ -195,14 +192,14 @@ State_t State = REPEATER_CLOSED;
 State_t nextState = REPEATER_CLOSED; // State after PTT ON delay
 
 // Timers
-ulong closeTimer;
-ulong rogerBeepTimer;
-ulong rogerBeepMinumumTimer; // Minumum time before triggering the roger beep
-ulong beaconTimer;
-ulong timeoutTimer; // Cut too long keydowns
-ulong pttEnableTimer; // PTT enabled to morse
-ulong pttDisableTimer; // End of morse to PTT off
-ulong carrier1750openTimer; // Carrier/1750 length before opening
+timer_t closeTimer;
+timer_t rogerBeepTimer;
+timer_t rogerBeepMinumumTimer; // Minumum time before triggering the roger beep
+timer_t beaconTimer;
+timer_t timeoutTimer; // Cut too long keydowns
+timer_t pttEnableTimer; // PTT enabled to morse
+timer_t pttDisableTimer; // End of morse to PTT off
+timer_t carrier1750openTimer; // Carrier/1750 length before opening
 
 bool beepEnabled; // A Roger beep can be sent
 bool beepUpdateTimer = true; // Update the minimum keydown counter for roger beep
@@ -247,18 +244,18 @@ void setRepeaterState()
     // Open Repeater
     if (openRequest())
     {
-      if (TIMER_ELAPSED(carrier1750openTimer))
+      if (TimerElapsed(carrier1750openTimer))
       {
-        UPDATE_TIMER(closeTimer,INACTIVE_CLOSE);
+        UpdateTimer(closeTimer,INACTIVE_CLOSE);
         State = REPEATER_PTTON;
         nextState = REPEATER_OPENING;
-        UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
+        UpdateTimer(pttEnableTimer, PTT_ON_DELAY);
         debugPrint ("Opening");
       }
     }
     else
     { // When no opening request is done, update timer
-      UPDATE_TIMER(carrier1750openTimer, CARRIER_1750_DELAY);
+      UpdateTimer(carrier1750openTimer, CARRIER_1750_DELAY);
     }
 
     break;
@@ -268,26 +265,26 @@ void setRepeaterState()
     // Keep repeater open as long there is some input
     if (rxActive())
     {
-      UPDATE_TIMER(closeTimer, INACTIVE_CLOSE); // Repeater closing timer
-      UPDATE_TIMER(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
+      UpdateTimer(closeTimer, INACTIVE_CLOSE); // Repeater closing timer
+      UpdateTimer(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
       timeOutEnabled = true;
     }
     else
     {
-      UPDATE_TIMER(timeoutTimer, TIMEOUT_DELAY); // Update only when PTT is released
+      UpdateTimer(timeoutTimer, TIMEOUT_DELAY); // Update only when PTT is released
       timeOutEnabled = false;
     }
 
     if (!prevRxActive && rxActive()) // On squelch opening, rising edge
     {
       if (beepUpdateTimer)
-        UPDATE_TIMER(rogerBeepMinumumTimer,ROGER_BEEP_MINIMUM); // Count Minimum time to trigger roger beep
+        UpdateTimer(rogerBeepMinumumTimer,ROGER_BEEP_MINIMUM); // Count Minimum time to trigger roger beep
     }
 
     if (prevRxActive && !rxActive()) // If the Squelch was previously opened, falling edge
     {
       beepUpdateTimer = false; // Do not reload roger beep timer on a falling edge (flutter protection)
-      if (TIMER_ELAPSED(rogerBeepMinumumTimer)) // Enable roger beep after some time only
+      if (TimerElapsed(rogerBeepMinumumTimer)) // Enable roger beep after some time only
       {
         beepEnabled = true;
       }
@@ -296,27 +293,27 @@ void setRepeaterState()
     prevRxActive = rxActive();
 
     // Set timeout after a known time    
-    if (TIMER_ELAPSED(closeTimer)
+    if (TimerElapsed(closeTimer)
     || (ADMIN_MODE_WHEN_OPENED && adminState == ADMIN_AUTH)) // Close repeater when entering in admin mode
     {
       debugPrint ("Closing");
       sendMorse (CLOSEMSG, MORSE_FREQ);
       State = REPEATER_CLOSING;
-      UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after closing
+      UpdateTimer(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after closing
     }
 
     // If the PTT is hold for too long, close the repeater
-    if (timeOutEnabled && TIMER_ELAPSED(timeoutTimer))
+    if (timeOutEnabled && TimerElapsed(timeoutTimer))
     {
        debugPrint ("Timeout");
        sendMorse (TIMEOUTMSG, MORSE_FREQ);
        State = REPEATER_CLOSING;
-       UPDATE_TIMER(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after timeout
+       UpdateTimer(beaconTimer,BEACON_DELAY); // Force Identification BEACON_DELAY time after timeout
        timeOutEnabled = false;
     }
 
     // Roger Beep
-    if (TIMER_ELAPSED(rogerBeepTimer)) // PTT Release time to roger beep
+    if (TimerElapsed(rogerBeepTimer)) // PTT Release time to roger beep
     {
       beepUpdateTimer = true;
       if (beepEnabled)
@@ -354,7 +351,7 @@ void setRepeaterState()
     if (!morseActive)
       {
         State = REPEATER_PTTOFF;
-        UPDATE_TIMER(pttDisableTimer, PTT_OFF_DELAY);
+        UpdateTimer(pttDisableTimer, PTT_OFF_DELAY);
       }
 
     break;
@@ -373,7 +370,7 @@ void setRepeaterState()
       {
         idSent = false;
         State = REPEATER_PTTOFF;
-        UPDATE_TIMER(pttDisableTimer, PTT_OFF_DELAY);
+        UpdateTimer(pttDisableTimer, PTT_OFF_DELAY);
       }
 
     break;
@@ -381,7 +378,7 @@ void setRepeaterState()
     // --------------- REPEATER ON BEFORE MORSE -------
     case REPEATER_PTTON: // PTT on before sending morse
 
-    if (TIMER_ELAPSED(pttEnableTimer))
+    if (TimerElapsed(pttEnableTimer))
     {
       State = nextState;
     }
@@ -391,7 +388,7 @@ void setRepeaterState()
     // --------------- REPEATER OFF AFTER MORSE -------
     case REPEATER_PTTOFF: // PTT on after sending morse
 
-    if (TIMER_ELAPSED(pttDisableTimer))
+    if (TimerElapsed(pttDisableTimer))
     {
       State = REPEATER_CLOSED;
     }
@@ -425,7 +422,7 @@ void rogerBeep()
 // Beacon task
 void beaconTask()
 {
-  if (TIMER_ELAPSED(beaconTimer))
+  if (TimerElapsed(beaconTimer))
   {
     if (State == REPEATER_CLOSED && Configuration.offBeaconEnabled)
     {
@@ -440,13 +437,13 @@ void beaconTask()
       }
 
       debugPrint ("Beacon closed");
-      UPDATE_TIMER(beaconTimer, BEACON_DELAY);
+      UpdateTimer(beaconTimer, BEACON_DELAY);
     }
     else if (State == REPEATER_OPEN && (!morseActive) && (!beepEnabled) && (!rxActive()) && Configuration.onBeaconEnabled)
     {
       sendMorse (BEACONMSG, MORSE_FREQ);
       debugPrint ("Beacon open");
-      UPDATE_TIMER(beaconTimer, BEACON_DELAY); // Update timer here to ensure that it will be retransmitted when rx is not active
+      UpdateTimer(beaconTimer, BEACON_DELAY); // Update timer here to ensure that it will be retransmitted when rx is not active
     }
   }
 }
@@ -508,7 +505,7 @@ void sendClosedMorse(String msg, unsigned int freq)
 {
   nextState = REPEATER_ID;
   State = REPEATER_PTTON;
-  UPDATE_TIMER(pttEnableTimer, PTT_ON_DELAY);
+  UpdateTimer(pttEnableTimer, PTT_ON_DELAY);
   cwMessage = msg;
   cwFreq = freq;
 }

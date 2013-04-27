@@ -18,8 +18,11 @@
 
 // Dependant on the arduino model we are using
 
+#include "timer.h"
+
 // Timers
-ulong beepToneTimer;
+timer_t beepToneTimer;
+
 ulong ddsTuningWord; // DDS tuning word
 ulong ddsPhaseAccu; // DDS Phase accumulator
 
@@ -73,7 +76,7 @@ void startBeep(unsigned int freq, unsigned long duration)
     TIMSK2 |= (1 << TOIE2); // Enable Timer interrupt
 #endif
 
-    UPDATE_TIMER(beepToneTimer,duration);
+    UpdateTimer(beepToneTimer,duration);
     beepOn = true;
   }
 }
@@ -82,7 +85,7 @@ void startBeep(unsigned int freq, unsigned long duration)
 // CALLED only once in updateIO
 void updateBeep()
 {
-  if (beepOn && TIMER_ELAPSED(beepToneTimer))
+  if (beepOn && TimerElapsed(beepToneTimer))
   {
     // Arduino Leonardo
 #if defined(__AVR_ATmega32U4__)

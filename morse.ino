@@ -16,7 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-ulong morseTimer;
+#include "timer.h"
+
+timer_t morseTimer;
 
 String morseStr; // Pointer to the morse string
 int strCounter; // Morse string index
@@ -104,7 +106,7 @@ void morseGenerator()
     newChar = false;
   }
 
-  if (TIMER_ELAPSED(morseTimer) && morseActive) // Generate symbols for every character
+  if (TimerElapsed(morseTimer) && morseActive) // Generate symbols for every character
   {
     if (symCounter < 8)
     {
@@ -121,26 +123,26 @@ void morseGenerator()
       symCounter = 0;
       newChar = true;
       currentChar = 0x0C;
-      UPDATE_TIMER(morseTimer,MORSE_LETTER_SPC);
+      UpdateTimer(morseTimer,MORSE_LETTER_SPC);
     }
   }
 }
 
 void morseDash()
 {
-  if (TIMER_ELAPSED(morseTimer))
+  if (TimerElapsed(morseTimer))
   {
     startBeep (morseFreq, MORSE_DASH);
-    UPDATE_TIMER(morseTimer,MORSE_DASH+MORSE_SYM_SPC);
+    UpdateTimer(morseTimer,MORSE_DASH+MORSE_SYM_SPC);
   }
 }
 
 void morseDot()
 {
-  if (TIMER_ELAPSED(morseTimer))
+  if (TimerElapsed(morseTimer))
   {
     startBeep (morseFreq, MORSE_DOT);
-    UPDATE_TIMER(morseTimer,MORSE_DOT+MORSE_SYM_SPC);
+    UpdateTimer(morseTimer,MORSE_DOT+MORSE_SYM_SPC);
   }
 }
 
