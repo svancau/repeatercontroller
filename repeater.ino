@@ -89,8 +89,8 @@
 #define CUT_1750 1
 
 // BEHAVIOUR of the roger beep define only _ONE_ of those or none
-//#define ROGER_TONE
-#define ROGER_K
+#define ROGER_TONE
+//#define ROGER_K
 //#define ROGER_SMETER
 
 // BEEP Frequencies (in tens of Hertz)
