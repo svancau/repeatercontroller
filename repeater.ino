@@ -97,6 +97,7 @@
 // BEEP Frequencies (in tens of Hertz)
 #define BEEP_FREQ 8000
 #define MORSE_FREQ 6500
+#define CTCSS_FREQ 1072
 
 #define CPU_FREQ 16000000UL
 
@@ -335,6 +336,7 @@ void setRepeaterState()
       {
         sendMorse (OPENMSG, MORSE_FREQ);
         openSent = true;
+        enableCTCSS(true); // Enable CTCSS at opening
       }
 
     if (!morseActive)
@@ -351,6 +353,7 @@ void setRepeaterState()
     case REPEATER_CLOSING: // Wait with PTT on till there is no more morse to send
     if (!morseActive)
       {
+        enableCTCSS(false); // Disable CTCSS when closing
         State = REPEATER_PTTOFF;
         UpdateTimer(pttDisableTimer, PTT_OFF_DELAY);
       }

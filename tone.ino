@@ -19,6 +19,8 @@
 // Dependant on the arduino model we are using
 
 #include "timer.h"
+// Shift right of the CTCSS output value to attenuate output (increases distortion)
+#define CTCSS_ATT 1
 
 // Timers
 timer_t beepToneTimer;
@@ -26,6 +28,10 @@ timer_t beepToneTimer;
 ulong ddsToneTuningWord; // DDS tuning word
 ulong ddsTonePhaseAccu; // DDS Phase accumulator
 
+ulong ddsCTCSSTuningWord; // DDS tuning word
+ulong ddsCTCSSPhaseAccu; // DDS Phase accumulator
+
+bool ctcssEnabled; // CTCSS is enabled
 
 // Sine wave table
 PROGMEM prog_uchar sine[] = {
@@ -61,6 +67,12 @@ void setupTimer()
 #endif
 }
 
+void enableCTCSS(bool value)
+{
+  ctcssEnabled=value;
+  ddsCTCSSTuningWord = ((4294967295UL / (CPU_FREQ/256)) * CTCSS_FREQ)/10;
+}
+
 // Do a beep for a known time
 void startBeep(unsigned int freq, unsigned long duration)
 {
@@ -76,7 +88,7 @@ void startBeep(unsigned int freq, unsigned long duration)
 // CALLED only once in updateIO
 void updateBeep()
 {
-  if (beepOn) // When Beep is enabled
+  if (beepOn || ctcssEnabled) // When Beep is enabled
   {
     // Start Timer
     // Arduino Leonardo
@@ -118,10 +130,17 @@ inline unsigned char ddsTone()
   {
     ddsTonePhaseAccu += ddsToneTuningWord;
     index = ddsTonePhaseAccu >> 24;
-    value += pgm_read_byte_near(sine + index) >> 1; // Value of the PWM output
+    value += pgm_read_byte_near(sine + index) >> 1;
   }
 
-  return value;
+  if (ctcssEnabled) // CTCSS generation
+  {
+    ddsCTCSSPhaseAccu += ddsCTCSSTuningWord;
+    index = ddsCTCSSPhaseAccu >> 24;
+    value += pgm_read_byte_near(sine + index) >> CTCSS_ATT;
+  }
+
+  return value; // Value of the PWM output
 }
 
 // Tone generation DDS timer overflow interrupt
