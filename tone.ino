@@ -103,17 +103,23 @@ void updateBeep()
   }
 }
 
-// Tone generation DDS timer overflow interrupt
-// For Arduino Leonardo
-#if defined(__AVR_ATmega32U4__)
-ISR(TIMER3_OVF_vect)
+// Tone Generation function
+inline unsigned char ddsTone()
 {
   unsigned char index; // Sample Index
   unsigned char value; // Sample Value
   ddsPhaseAccu += ddsTuningWord;
   index = ddsPhaseAccu >> 24;
-  value = pgm_read_byte_near(sine + index) >> 1; // Value of the morse
-  OCR3A = value;
+  value = pgm_read_byte_near(sine + index) >> 1; // Value of the PWM output
+  return value;
+}
+
+// Tone generation DDS timer overflow interrupt
+// For Arduino Leonardo
+#if defined(__AVR_ATmega32U4__)
+ISR(TIMER3_OVF_vect)
+{
+  OCR3A = ddsTone(); // Write Comparator value
 }
 #endif
 
@@ -122,12 +128,7 @@ ISR(TIMER3_OVF_vect)
 #if !defined(__AVR_ATmega32U4__)
 ISR(TIMER2_OVF_vect)
 {
-  unsigned char index; // Sample Index
-  unsigned char value; // Sample Value
-  ddsPhaseAccu += ddsTuningWord;
-  index = ddsPhaseAccu >> 24;
-  value = pgm_read_byte_near(sine + index) >> 1; // Value of the morse
-  OCR2A = value;
+  OCR2A = ddsTone(); // Write Comparator value
 }
 #endif
 
