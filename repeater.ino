@@ -223,6 +223,7 @@ void loop()
   beaconTask();
   dtmfCaptureTask();
   analogTask();
+  updateBeep(); // Start/Stop the beep when timer elapsed
 #if defined(TEST_ENABLE)
   testTask();
 #endif
@@ -479,8 +480,6 @@ void updateIO()
       digitalWrite(PIN_AMUX1, HIGH);
     }
   }
-
-  updateBeep(); // Stop the beep when timer elapsed
 }
 
 // Check if opening is requested

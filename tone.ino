@@ -23,8 +23,9 @@
 // Timers
 timer_t beepToneTimer;
 
-ulong ddsTuningWord; // DDS tuning word
-ulong ddsPhaseAccu; // DDS Phase accumulator
+ulong ddsToneTuningWord; // DDS tuning word
+ulong ddsTonePhaseAccu; // DDS Phase accumulator
+
 
 // Sine wave table
 PROGMEM prog_uchar sine[] = {
@@ -63,19 +64,9 @@ void setupTimer()
 // Do a beep for a known time
 void startBeep(unsigned int freq, unsigned long duration)
 {
-  ddsTuningWord = ((4294967295UL / (CPU_FREQ/256)) * freq)/10;
+  ddsToneTuningWord = ((4294967295UL / (CPU_FREQ/256)) * freq)/10;
   if (!beepOn)
   {
-    // Arduino Leonardo
-#if defined(__AVR_ATmega32U4__)
-    TCCR3A |= (1 << COM3A1); // Enable comparator output
-    TIMSK3 |= (1 << TOIE3); // Enable Timer interrupt
-    // Arduino Uno
-#else
-    TCCR2A |= (1 << COM2A1); // Enable comparator output
-    TIMSK2 |= (1 << TOIE2); // Enable Timer interrupt
-#endif
-
     UpdateTimer(beepToneTimer,duration);
     beepOn = true;
   }
@@ -85,22 +76,36 @@ void startBeep(unsigned int freq, unsigned long duration)
 // CALLED only once in updateIO
 void updateBeep()
 {
-  if (beepOn && TimerElapsed(beepToneTimer))
+  if (beepOn) // When Beep is enabled
   {
+    // Start Timer
     // Arduino Leonardo
 #if defined(__AVR_ATmega32U4__)
-    TCCR3A &= ~(1 << COM3A1); // Disable comparator output
-    TIMSK3 &= ~(1 << TOIE3); // Disable Timer interrupt
+    TCCR3A |= (1 << COM3A1); // Enable comparator output
+    TIMSK3 |= (1 << TOIE3); // Enable Timer interrupt
     // Arduino Uno
 #else
-
-    TCCR2A &= ~(1 << COM2A1); // Disable comparator output
-    TIMSK2 &= ~(1 << TOIE2); // Disable Timer interrupt
-
+    TCCR2A |= (1 << COM2A1); // Enable comparator output
+    TIMSK2 |= (1 << TOIE2); // Enable Timer interrupt
 #endif
-
-    beepOn = false;
   }
+  else // When nothing is enabled
+  {
+      // Arduino Leonardo
+#if defined(__AVR_ATmega32U4__)
+      TCCR3A &= ~(1 << COM3A1); // Disable comparator output
+      TIMSK3 &= ~(1 << TOIE3); // Disable Timer interrupt
+      // Arduino Uno
+#else
+      TCCR2A &= ~(1 << COM2A1); // Disable comparator output
+      TIMSK2 &= ~(1 << TOIE2); // Disable Timer interrupt
+#endif
+  }
+
+  if (TimerElapsed(beepToneTimer)) // When tone must finish
+  {
+      beepOn = false;
+   }
 }
 
 // Tone Generation function
@@ -108,9 +113,14 @@ inline unsigned char ddsTone()
 {
   unsigned char index; // Sample Index
   unsigned char value; // Sample Value
-  ddsPhaseAccu += ddsTuningWord;
-  index = ddsPhaseAccu >> 24;
-  value = pgm_read_byte_near(sine + index) >> 1; // Value of the PWM output
+  value = 0;
+  if (beepOn) // When using the beep generator
+  {
+    ddsTonePhaseAccu += ddsToneTuningWord;
+    index = ddsTonePhaseAccu >> 24;
+    value += pgm_read_byte_near(sine + index) >> 1; // Value of the PWM output
+  }
+
   return value;
 }
 
