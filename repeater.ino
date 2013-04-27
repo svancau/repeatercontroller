@@ -86,6 +86,7 @@
 #define ADMIN_MODE_WHEN_OPENED 1
 // Echolink mode enabled the repeater to ignore DTMF codes when opened except ADMIN
 #define ECHOLINK_MODE 1
+#define CUT_1750 1
 
 // BEHAVIOUR of the roger beep define only _ONE_ of those or none
 //#define ROGER_TONE
@@ -468,7 +469,7 @@ void updateIO()
   }
   else
   {
-    if (morseActive || beepOn || adminState != ADMIN_IDLE || !rxActive()) // If no beep, morse or DTMF is present
+    if (morseActive || beepOn || adminState != ADMIN_IDLE || !rxActive() || (CUT_1750 && digitalRead(PIN_1750))) // If no beep, morse or DTMF is present
     {
       // Use CW input
       digitalWrite(PIN_AMUX0, HIGH);
