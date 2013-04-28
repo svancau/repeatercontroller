@@ -352,6 +352,7 @@ void setRepeaterState()
       UpdateTimer(timeoutTimer, TIMEOUT_DELAY); // Update timer when opening
       UpdateTimer(closeTimer, INACTIVE_CLOSE); // Repeater closing timer
       UpdateTimer(rogerBeepTimer,RELEASE_BEEP); // Roger beep start timer
+      beepEnabled = false; // Disable roger beep on opening
 
     break;
 
